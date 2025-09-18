@@ -693,7 +693,7 @@
                     return;
                 }
                 
-                // Fill layer
+                // Fill layer with simplified expression
                 try {
                     map.addLayer({
                         id: config.id + '-fill',
@@ -703,8 +703,8 @@
                             'fill-color': [
                                 'case',
                                 ['boolean', ['feature-state', 'selected'], false],
-                                ['coalesce', ['feature-state', 'selectedColor'], '#7faef5'],
-                                '#8896a1'
+                                '#7faef5', // Default selected color, will be updated dynamically
+                                '#8896a1'  // Default unselected color
                             ],
                             'fill-opacity': [
                                 'case',
@@ -714,6 +714,7 @@
                             ]
                         }
                     });
+                    console.log(`Added fill layer for ${level}`);
                 } catch (error) {
                     console.error(`Error adding fill layer for ${level}:`, error);
                 }
@@ -730,6 +731,7 @@
                             'line-opacity': 0.8
                         }
                     });
+                    console.log(`Added border layer for ${level}`);
                 } catch (error) {
                     console.error(`Error adding border layer for ${level}:`, error);
                 }
@@ -754,6 +756,7 @@
                             'text-halo-width': 2
                         }
                     });
+                    console.log(`Added label layer for ${level}`);
                 } catch (error) {
                     console.error(`Error adding label layer for ${level}:`, error);
                 }
@@ -789,6 +792,7 @@
                             'line-opacity': 1
                         }
                     });
+                    console.log('Added country border layer');
                 }
             } catch (error) {
                 console.error('Error adding country border layer:', error);
@@ -850,6 +854,24 @@
                                 addGeoJsonSources();
                                 addGeoJsonLayers();
                                 setupMapInteractions();
+                                
+                                // Re-apply selections and colors
+                                setTimeout(() => {
+                                    selectedRegions.forEach(region => {
+                                        if (region.feature.id !== undefined) {
+                                            try {
+                                                map.setFeatureState(
+                                                    { source: `korea-${region.level}-source`, id: region.feature.id },
+                                                    { selected: true }
+                                                );
+                                            } catch (error) {
+                                                console.error('Error re-applying selection:', error);
+                                            }
+                                        }
+                                    });
+                                    updateLayerColors();
+                                }, 100);
+                                
                                 showToast('지도 스타일이 변경되었습니다', 'success');
                             } catch (error) {
                                 console.error('Error re-adding layers after style change:', error);
@@ -986,10 +1008,16 @@
                 // Deselect
                 selectedRegions.splice(existingIndex, 1);
                 if (feature.id !== undefined) {
-                    map.setFeatureState(
-                        { source: `korea-${level}-source`, id: feature.id },
-                        { selected: false }
-                    );
+                    try {
+                        map.setFeatureState(
+                            { source: `korea-${level}-source`, id: feature.id },
+                            { selected: false }
+                        );
+                        // Update the layer paint to reflect changes
+                        updateLayerColors();
+                    } catch (error) {
+                        console.error('Error deselecting region:', error);
+                    }
                 }
                 showToast(`${regionName} 선택 해제됨`, 'success');
             } else {
@@ -1004,15 +1032,44 @@
                 });
                 
                 if (feature.id !== undefined) {
-                    map.setFeatureState(
-                        { source: `korea-${level}-source`, id: feature.id },
-                        { selected: true, selectedColor: selectedColor }
-                    );
+                    try {
+                        map.setFeatureState(
+                            { source: `korea-${level}-source`, id: feature.id },
+                            { selected: true }
+                        );
+                        // Update the layer paint to show the selected color
+                        updateLayerColors();
+                    } catch (error) {
+                        console.error('Error selecting region:', error);
+                    }
                 }
                 showToast(`${regionName} 선택됨`, 'success');
             }
             
             updateSelectedRegionsInfo();
+        }
+
+        // Update layer colors based on selections
+        function updateLayerColors() {
+            Object.keys(layerConfig).forEach(level => {
+                const layerId = layerConfig[level].id + '-fill';
+                if (map.getLayer(layerId)) {
+                    try {
+                        // Get the current selected color
+                        const selectedColor = document.getElementById('regionColor')?.value || '#7faef5';
+                        
+                        // Update the fill-color expression
+                        map.setPaintProperty(layerId, 'fill-color', [
+                            'case',
+                            ['boolean', ['feature-state', 'selected'], false],
+                            selectedColor,
+                            '#8896a1'
+                        ]);
+                    } catch (error) {
+                        console.error(`Error updating layer colors for ${level}:`, error);
+                    }
+                }
+            });
         }
 
         // Select color from palette
@@ -1046,6 +1103,7 @@
             
             selectedRegions = [];
             updateSelectedRegionsInfo();
+            updateLayerColors();
             showToast('모든 선택이 해제되었습니다', 'success');
         }
 
