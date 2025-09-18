@@ -13,13 +13,390 @@
     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
     <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" type="text/css">
     
-    <!-- External CSS (you can also inline this if needed) -->
-    <link rel="stylesheet" href="./css/style.css">
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            overflow: hidden;
+        }
+
+        /* Main container layout */
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar styles */
+        .sidebar {
+            width: 350px;
+            background: white;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            z-index: 1000;
+            position: relative;
+        }
+
+        .sidebar h2 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 20px;
+            text-align: center;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+
+        /* Control group styles */
+        .control-group {
+            margin-bottom: 25px;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: #f9f9f9;
+            transition: box-shadow 0.2s ease;
+        }
+
+        .control-group:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .control-group h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 16px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+            font-weight: 600;
+        }
+
+        /* Control item styles */
+        .control-item {
+            margin-bottom: 12px;
+        }
+
+        .control-item label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+            font-size: 14px;
+        }
+
+        /* Administrative level selector */
+        .admin-level-selector {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .admin-btn {
+            flex: 1;
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .admin-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .admin-btn.active {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        /* Slider styles */
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+            transition: background 0.2s;
+        }
+
+        input[type="range"]:hover {
+            background: #ccc;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #007bff;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: #0056b3;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #007bff;
+            cursor: pointer;
+            border: none;
+        }
+
+        .slider-value {
+            min-width: 30px;
+            text-align: center;
+            font-weight: bold;
+            color: #333;
+            font-size: 14px;
+        }
+
+        /* Color input styles */
+        input[type="color"] {
+            width: 50px;
+            height: 30px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        input[type="color"]:hover {
+            transform: scale(1.05);
+        }
+
+        /* Checkbox styles */
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        /* Select styles */
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        select:hover, select:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+        /* Color palette styles */
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .color-item {
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .color-item:hover {
+            border-color: #333;
+            transform: scale(1.1);
+        }
+
+        .color-item.selected {
+            border-color: #007bff;
+            border-width: 3px;
+        }
+
+        .color-item.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: bold;
+            text-shadow: 0 0 3px rgba(0,0,0,0.8);
+        }
+
+        /* Button styles */
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            font-size: 14px;
+            text-align: center;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #545b62;
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn:disabled:hover {
+            transform: none;
+        }
+
+        /* Export buttons */
+        .export-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .export-buttons .btn {
+            width: 100%;
+        }
+
+        /* Route controls */
+        .route-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .route-toggle {
+            background: #28a745;
+            color: white;
+        }
+
+        .route-toggle.active {
+            background: #dc3545;
+        }
+
+        /* Selected regions info */
+        .selected-info {
+            background: #e7f3ff;
+            border: 1px solid #007bff;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+
+        .selected-info h4 {
+            margin: 0 0 5px 0;
+            color: #007bff;
+        }
+
+        .selected-list {
+            max-height: 100px;
+            overflow-y: auto;
+            font-size: 11px;
+        }
+
+        /* Map container */
+        #map {
+            flex: 1;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                max-height: 40vh;
+                order: 2;
+            }
+            
+            #map {
+                height: 60vh;
+                order: 1;
+            }
+        }
+
+        /* Scrollbar styles for webkit browsers */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <div class="sidebar">
-            <h2 style="margin-bottom: 20px; color: #333;">한국지도 설정</h2>
+            <h2>한국지도 설정</h2>
             
             <!-- 행정구역 레벨 선택 -->
             <div class="control-group">
@@ -121,13 +498,10 @@
                     <label for="regionColor">선택된 구역 색상:</label>
                     <input type="color" id="regionColor" value="#7faef5">
                 </div>
-                <div class="color-palette" id="colorPalette">
-                    <!-- 컬러 팔레트가 여기에 동적으로 생성됩니다 -->
-                </div>
+                <div class="color-palette" id="colorPalette"></div>
                 <div class="control-item">
                     <button class="btn btn-secondary" id="clearSelection">선택 해제</button>
                 </div>
-                <!-- 선택된 구역 정보 -->
                 <div class="selected-info" id="selectedInfo">
                     <h4>선택된 구역</h4>
                     <p>선택된 구역이 없습니다</p>
@@ -158,7 +532,7 @@
 
     <script>
         // ============================================================================
-        // KOREA MAP APP - All JavaScript code included
+        // KOREA MAP APP - Complete Application
         // ============================================================================
 
         // Set your Mapbox access token here
@@ -166,7 +540,6 @@
 
         // Global variables
         let map;
-        let koreaGeoJsonData = null;
         let selectedRegions = [];
         let isDrawingRoute = false;
         let routePoints = [];
@@ -190,13 +563,11 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM loaded, initializing map...');
             
-            // Check if mapboxgl is available
             if (typeof mapboxgl === 'undefined') {
                 alert('Mapbox GL JS 라이브러리를 로드할 수 없습니다. 인터넷 연결을 확인해주세요.');
                 return;
             }
 
-            // Check if access token is set
             if (!mapboxgl.accessToken || mapboxgl.accessToken === 'YOUR_MAPBOX_ACCESS_TOKEN') {
                 alert('Mapbox access token이 설정되지 않았습니다. YOUR_MAPBOX_ACCESS_TOKEN을 실제 토큰으로 교체하세요.');
                 return;
@@ -231,28 +602,54 @@
             });
         }
 
-        // Load GeoJSON data
+        // Load separate GeoJSON files
         async function loadGeoJsonData() {
             showLoading(true);
             
             try {
-                const response = await fetch('./data/korea.geojson');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                console.log('Loading separate GeoJSON files...');
                 
-                koreaGeoJsonData = await response.json();
-                console.log('GeoJSON data loaded:', koreaGeoJsonData);
+                // Load all three files simultaneously
+                const [sidoResponse, sigunguResponse, emdResponse] = await Promise.all([
+                    fetch('./data/sido.geojson'),
+                    fetch('./data/sigungu.geojson'),
+                    fetch('./data/emd.geojson')
+                ]);
                 
+                // Check if all requests were successful
+                if (!sidoResponse.ok) throw new Error(`Failed to load sido.geojson: ${sidoResponse.status}`);
+                if (!sigunguResponse.ok) throw new Error(`Failed to load sigungu.geojson: ${sigunguResponse.status}`);
+                if (!emdResponse.ok) throw new Error(`Failed to load emd.geojson: ${emdResponse.status}`);
+                
+                // Parse JSON data
+                const [sidoData, sigunguData, emdData] = await Promise.all([
+                    sidoResponse.json(),
+                    sigunguResponse.json(),
+                    emdResponse.json()
+                ]);
+                
+                console.log('GeoJSON files loaded successfully:');
+                console.log(`- Sido features: ${sidoData.features.length}`);
+                console.log(`- Sigungu features: ${sigunguData.features.length}`);
+                console.log(`- Emd features: ${emdData.features.length}`);
+                
+                // Store the data globally
+                window.koreaData = {
+                    sido: sidoData,
+                    sigungu: sigunguData,
+                    emd: emdData
+                };
+                
+                // Add sources and layers
                 addGeoJsonSources();
                 addGeoJsonLayers();
                 setupMapInteractions();
                 
-                showToast('한국 행정구역 데이터가 성공적으로 로드되었습니다', 'success');
+                showToast(`한국 행정구역 데이터 로드 완료 (시도: ${sidoData.features.length}, 시군구: ${sigunguData.features.length}, 읍면동: ${emdData.features.length})`, 'success');
                 
             } catch (error) {
-                console.error('Error loading GeoJSON:', error);
-                showError('GeoJSON 파일을 로드할 수 없습니다. data/korea.geojson 파일이 존재하는지 확인하세요.');
+                console.error('Error loading GeoJSON files:', error);
+                showError(`GeoJSON 파일 로드 실패: ${error.message}. data/ 폴더에 sido.geojson, sigungu.geojson, emd.geojson 파일이 있는지 확인하세요.`);
             } finally {
                 showLoading(false);
             }
@@ -269,74 +666,14 @@
                 }
             });
 
-            // Create a simple fallback if filtering doesn't work
-            let sidoData, sigunguData, emdData;
-
             try {
-                // Try to filter by various possible property names
-                sidoData = {
-                    type: 'FeatureCollection',
-                    features: koreaGeoJsonData.features.filter(feature => {
-                        const props = feature.properties || {};
-                        return props.admin_level === '4' || 
-                               props.level === 'sido' ||
-                               props.type === '시도' ||
-                               props.ADM_LEVEL === '4' ||
-                               (props.name && props.name.includes('시')) ||
-                               (props.NAME && props.NAME.includes('시'));
-                    })
-                };
+                // Use the pre-loaded data directly (no filtering needed since files are already separated)
+                const { sido: sidoData, sigungu: sigunguData, emd: emdData } = window.koreaData;
                 
-                sigunguData = {
-                    type: 'FeatureCollection', 
-                    features: koreaGeoJsonData.features.filter(feature => {
-                        const props = feature.properties || {};
-                        return props.admin_level === '5' || 
-                               props.level === 'sigungu' ||
-                               props.type === '시군구' ||
-                               props.ADM_LEVEL === '5' ||
-                               (props.name && (props.name.includes('구') || props.name.includes('군'))) ||
-                               (props.NAME && (props.NAME.includes('구') || props.NAME.includes('군')));
-                    })
-                };
-                
-                emdData = {
-                    type: 'FeatureCollection',
-                    features: koreaGeoJsonData.features.filter(feature => {
-                        const props = feature.properties || {};
-                        return props.admin_level === '8' || 
-                               props.level === 'emd' ||
-                               props.type === '읍면동' ||
-                               props.ADM_LEVEL === '8' ||
-                               (props.name && (props.name.includes('동') || props.name.includes('읍') || props.name.includes('면'))) ||
-                               (props.NAME && (props.NAME.includes('동') || props.NAME.includes('읍') || props.NAME.includes('면')));
-                    })
-                };
-
-                // If no features found with filtering, use all features for sido level
-                if (sidoData.features.length === 0 && sigunguData.features.length === 0 && emdData.features.length === 0) {
-                    console.warn('No features found with filtering, using all features for sido level');
-                    sidoData = koreaGeoJsonData;
-                    sigunguData = koreaGeoJsonData;
-                    emdData = koreaGeoJsonData;
-                }
-
-                console.log(`Found features - Sido: ${sidoData.features.length}, Sigungu: ${sigunguData.features.length}, Emd: ${emdData.features.length}`);
-
-            } catch (error) {
-                console.error('Error filtering GeoJSON data:', error);
-                // Fallback: use all data for all levels
-                sidoData = sigunguData = emdData = koreaGeoJsonData;
-            }
-
-            // Add sources to map
-            try {
+                // Add sources to map
                 map.addSource('korea-sido-source', { type: 'geojson', data: sidoData });
                 map.addSource('korea-sigungu-source', { type: 'geojson', data: sigunguData });
                 map.addSource('korea-emd-source', { type: 'geojson', data: emdData });
-                
-                // Store filtered data for later use
-                window.koreaData = { sido: sidoData, sigungu: sigunguData, emd: emdData };
                 
                 console.log('GeoJSON sources added successfully');
             } catch (error) {
@@ -350,62 +687,112 @@
             Object.keys(layerConfig).forEach(level => {
                 const config = layerConfig[level];
                 
-                map.addLayer({
-                    id: config.id + '-fill',
-                    type: 'fill',
-                    source: `korea-${level}-source`,
-                    paint: {
-                        'fill-color': [
-                            'case',
-                            ['boolean', ['feature-state', 'selected'], false],
-                            ['get', 'selectedColor', ['literal', '#7faef5']],
-                            '#8896a1'
-                        ],
-                        'fill-opacity': [
-                            'case',
-                            ['boolean', ['feature-state', 'hover'], false],
-                            config.fillOpacity + 0.2,
-                            config.fillOpacity
-                        ]
-                    }
-                });
+                // Check if source exists before adding layers
+                if (!map.getSource(`korea-${level}-source`)) {
+                    console.warn(`Source korea-${level}-source does not exist`);
+                    return;
+                }
+                
+                // Fill layer
+                try {
+                    map.addLayer({
+                        id: config.id + '-fill',
+                        type: 'fill',
+                        source: `korea-${level}-source`,
+                        paint: {
+                            'fill-color': [
+                                'case',
+                                ['boolean', ['feature-state', 'selected'], false],
+                                ['coalesce', ['feature-state', 'selectedColor'], '#7faef5'],
+                                '#8896a1'
+                            ],
+                            'fill-opacity': [
+                                'case',
+                                ['boolean', ['feature-state', 'hover'], false],
+                                config.fillOpacity + 0.2,
+                                config.fillOpacity
+                            ]
+                        }
+                    });
+                } catch (error) {
+                    console.error(`Error adding fill layer for ${level}:`, error);
+                }
 
-                map.addLayer({
-                    id: config.id + '-border',
-                    type: 'line',
-                    source: `korea-${level}-source`,
-                    paint: {
-                        'line-color': '#ffffff',
-                        'line-width': config.borderWidth,
-                        'line-opacity': 0.8
-                    }
-                });
+                // Border layer
+                try {
+                    map.addLayer({
+                        id: config.id + '-border',
+                        type: 'line',
+                        source: `korea-${level}-source`,
+                        paint: {
+                            'line-color': '#ffffff',
+                            'line-width': config.borderWidth,
+                            'line-opacity': 0.8
+                        }
+                    });
+                } catch (error) {
+                    console.error(`Error adding border layer for ${level}:`, error);
+                }
 
-                map.addLayer({
-                    id: config.id + '-labels',
-                    type: 'symbol',
-                    source: `korea-${level}-source`,
-                    layout: {
-                        'text-field': ['get', 'name'],
-                        'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
-                        'text-size': level === 'sido' ? 14 : level === 'sigungu' ? 12 : 10,
-                        'text-anchor': 'center',
-                        'text-allow-overlap': false,
-                        'text-ignore-placement': false
-                    },
-                    paint: {
-                        'text-color': '#333333',
-                        'text-halo-color': '#ffffff',
-                        'text-halo-width': 2
-                    }
-                });
+                // Label layer using ADZONE_NM field
+                try {
+                    map.addLayer({
+                        id: config.id + '-labels',
+                        type: 'symbol',
+                        source: `korea-${level}-source`,
+                        layout: {
+                            'text-field': ['get', 'ADZONE_NM'],
+                            'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
+                            'text-size': level === 'sido' ? 14 : level === 'sigungu' ? 12 : 10,
+                            'text-anchor': 'center',
+                            'text-allow-overlap': false,
+                            'text-ignore-placement': false
+                        },
+                        paint: {
+                            'text-color': '#333333',
+                            'text-halo-color': '#ffffff',
+                            'text-halo-width': 2
+                        }
+                    });
+                } catch (error) {
+                    console.error(`Error adding label layer for ${level}:`, error);
+                }
 
+                // Initially hide all layers except sido
                 if (level !== 'sido') {
-                    map.setLayoutProperty(config.id + '-fill', 'visibility', 'none');
-                    map.setLayoutProperty(config.id + '-border', 'visibility', 'none');
-                    map.setLayoutProperty(config.id + '-labels', 'visibility', 'none');
+                    try {
+                        if (map.getLayer(config.id + '-fill')) {
+                            map.setLayoutProperty(config.id + '-fill', 'visibility', 'none');
+                        }
+                        if (map.getLayer(config.id + '-border')) {
+                            map.setLayoutProperty(config.id + '-border', 'visibility', 'none');
+                        }
+                        if (map.getLayer(config.id + '-labels')) {
+                            map.setLayoutProperty(config.id + '-labels', 'visibility', 'none');
+                        }
+                    } catch (error) {
+                        console.error(`Error setting visibility for ${level}:`, error);
+                    }
                 }
             });
+
+            // Add country border layer using sido source
+            try {
+                if (map.getSource('korea-sido-source')) {
+                    map.addLayer({
+                        id: 'korea-country-border',
+                        type: 'line',
+                        source: 'korea-sido-source',
+                        paint: {
+                            'line-color': '#ffffff',
+                            'line-width': 4,
+                            'line-opacity': 1
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error adding country border layer:', error);
+            }
         }
 
         // Initialize color palette
@@ -438,6 +825,7 @@
 
         // Initialize controls
         function initializeControls() {
+            // Administrative level buttons
             document.querySelectorAll('.admin-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const level = e.target.dataset.level;
@@ -445,6 +833,7 @@
                 });
             });
 
+            // Map style selector
             document.getElementById('mapStyle')?.addEventListener('change', function(e) {
                 const newStyle = e.target.value;
                 showLoading(true);
@@ -455,9 +844,8 @@
                 map.once('styledata', () => {
                     console.log('Style changed, re-adding layers...');
                     
-                    // Wait a bit for the new style to fully load
                     setTimeout(() => {
-                        if (koreaGeoJsonData) {
+                        if (window.koreaData) {
                             try {
                                 addGeoJsonSources();
                                 addGeoJsonLayers();
@@ -473,35 +861,88 @@
                 });
             });
 
+            // Slider event listeners
             document.getElementById('countryBorderWidth')?.addEventListener('input', function(e) {
                 document.getElementById('countryBorderValue').textContent = e.target.value;
+                updateCountryBorderStyle();
             });
 
             document.getElementById('adminBorderWidth')?.addEventListener('input', function(e) {
                 document.getElementById('adminBorderValue').textContent = e.target.value;
+                updateAdminBorderStyle();
             });
 
+            // Color change event listeners
+            document.getElementById('borderColor')?.addEventListener('change', updateBorderColor);
+            document.getElementById('regionColor')?.addEventListener('change', updateSelectedRegionColors);
+            
+            // Checkbox event listeners
+            document.getElementById('countryBorderDashed')?.addEventListener('change', updateCountryBorderStyle);
+            document.getElementById('adminBorderDashed')?.addEventListener('change', updateAdminBorderStyle);
+            document.getElementById('showLabels')?.addEventListener('change', updateLabelVisibility);
+
+            // Button event listeners
             document.getElementById('exportPNG')?.addEventListener('click', exportMapAsPNG);
+            document.getElementById('exportSVG')?.addEventListener('click', exportSelectedRegionsAsSVG);
+            document.getElementById('exportRoute')?.addEventListener('click', exportRouteAsSVG);
             document.getElementById('clearSelection')?.addEventListener('click', clearRegionSelection);
+            document.getElementById('toggleRoute')?.addEventListener('click', toggleRouteDrawing);
         }
 
         // Setup map interactions
         function setupMapInteractions() {
+            let hoveredFeatureId = null;
+
             Object.keys(layerConfig).forEach(level => {
                 const layerId = layerConfig[level].id + '-fill';
 
+                // Click to select region
                 map.on('click', layerId, (e) => {
+                    if (isDrawingRoute) {
+                        addRoutePoint(e.lngLat);
+                        return;
+                    }
+                    
                     const feature = e.features[0];
                     toggleRegionSelection(feature, level);
                 });
 
-                map.on('mouseenter', layerId, () => {
+                // Hover effects
+                map.on('mouseenter', layerId, (e) => {
                     map.getCanvas().style.cursor = 'pointer';
+                    
+                    if (hoveredFeatureId !== null) {
+                        map.setFeatureState(
+                            { source: `korea-${level}-source`, id: hoveredFeatureId },
+                            { hover: false }
+                        );
+                    }
+                    
+                    hoveredFeatureId = e.features[0].id;
+                    map.setFeatureState(
+                        { source: `korea-${level}-source`, id: hoveredFeatureId },
+                        { hover: true }
+                    );
                 });
 
                 map.on('mouseleave', layerId, () => {
                     map.getCanvas().style.cursor = '';
+                    
+                    if (hoveredFeatureId !== null) {
+                        map.setFeatureState(
+                            { source: `korea-${level}-source`, id: hoveredFeatureId },
+                            { hover: false }
+                        );
+                    }
+                    hoveredFeatureId = null;
                 });
+            });
+
+            // Click on map for route drawing
+            map.on('click', (e) => {
+                if (isDrawingRoute && !e.defaultPrevented) {
+                    addRoutePoint(e.lngLat);
+                }
             });
         }
 
@@ -509,19 +950,25 @@
         function switchAdminLevel(level) {
             currentAdminLevel = level;
             
+            // Update button states
             document.querySelectorAll('.admin-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
             document.querySelector(`[data-level="${level}"]`).classList.add('active');
             
+            // Show/hide layers
             Object.keys(layerConfig).forEach(layerLevel => {
                 const config = layerConfig[layerLevel];
                 const visibility = layerLevel === level ? 'visible' : 'none';
                 
                 if (map.getLayer(config.id + '-fill')) {
-                    map.setLayoutProperty(config.id + '-fill', 'visibility', visibility);
-                    map.setLayoutProperty(config.id + '-border', 'visibility', visibility);
-                    map.setLayoutProperty(config.id + '-labels', 'visibility', visibility);
+                    try {
+                        map.setLayoutProperty(config.id + '-fill', 'visibility', visibility);
+                        map.setLayoutProperty(config.id + '-border', 'visibility', visibility);
+                        map.setLayoutProperty(config.id + '-labels', 'visibility', visibility);
+                    } catch (error) {
+                        console.error(`Error switching visibility for ${layerLevel}:`, error);
+                    }
                 }
             });
             
@@ -530,26 +977,244 @@
 
         // Toggle region selection
         function toggleRegionSelection(feature, level) {
-            const regionName = feature.properties.name || feature.properties.NAME || 'Unknown';
-            showToast(`${regionName} 클릭됨`, 'success');
+            const regionId = feature.properties.NF_ID || feature.id || Math.random().toString();
+            const regionName = feature.properties.ADZONE_NM || 'Unknown';
+            
+            const existingIndex = selectedRegions.findIndex(r => r.id === regionId && r.level === level);
+            
+            if (existingIndex > -1) {
+                // Deselect
+                selectedRegions.splice(existingIndex, 1);
+                if (feature.id !== undefined) {
+                    map.setFeatureState(
+                        { source: `korea-${level}-source`, id: feature.id },
+                        { selected: false }
+                    );
+                }
+                showToast(`${regionName} 선택 해제됨`, 'success');
+            } else {
+                // Select
+                const selectedColor = document.getElementById('regionColor').value;
+                selectedRegions.push({
+                    id: regionId,
+                    name: regionName,
+                    level: level,
+                    feature: feature,
+                    color: selectedColor
+                });
+                
+                if (feature.id !== undefined) {
+                    map.setFeatureState(
+                        { source: `korea-${level}-source`, id: feature.id },
+                        { selected: true, selectedColor: selectedColor }
+                    );
+                }
+                showToast(`${regionName} 선택됨`, 'success');
+            }
+            
+            updateSelectedRegionsInfo();
         }
 
-        // Select color
+        // Select color from palette
         function selectColor(color, colorItem) {
             document.getElementById('regionColor').value = color;
+            
+            // Update visual selection
             document.querySelectorAll('.color-item').forEach(item => {
                 item.classList.remove('selected');
             });
             colorItem.classList.add('selected');
+            
+            updateSelectedRegionColors();
         }
 
-        // Clear selection
+        // Clear all region selections
         function clearRegionSelection() {
+            selectedRegions.forEach(region => {
+                const layerId = layerConfig[region.level].id + '-fill';
+                if (map.getLayer(layerId) && region.feature.id !== undefined) {
+                    try {
+                        map.setFeatureState(
+                            { source: `korea-${region.level}-source`, id: region.feature.id },
+                            { selected: false }
+                        );
+                    } catch (error) {
+                        console.error('Error clearing selection:', error);
+                    }
+                }
+            });
+            
             selectedRegions = [];
+            updateSelectedRegionsInfo();
             showToast('모든 선택이 해제되었습니다', 'success');
         }
 
-        // Export PNG
+        // Update country border style
+        function updateCountryBorderStyle() {
+            const width = parseInt(document.getElementById('countryBorderWidth')?.value || 3);
+            const isDashed = document.getElementById('countryBorderDashed')?.checked || false;
+            
+            if (map.getLayer('korea-country-border')) {
+                try {
+                    map.setPaintProperty('korea-country-border', 'line-width', width);
+                    map.setPaintProperty('korea-country-border', 'line-dasharray', 
+                        isDashed ? [2, 2] : [1, 0]);
+                } catch (error) {
+                    console.error('Error updating country border style:', error);
+                }
+            }
+        }
+
+        // Update admin border style  
+        function updateAdminBorderStyle() {
+            const width = parseInt(document.getElementById('adminBorderWidth')?.value || 2);
+            const isDashed = document.getElementById('adminBorderDashed')?.checked || false;
+            
+            Object.keys(layerConfig).forEach(level => {
+                const layerId = layerConfig[level].id + '-border';
+                if (map.getLayer(layerId)) {
+                    try {
+                        map.setPaintProperty(layerId, 'line-width', width);
+                        map.setPaintProperty(layerId, 'line-dasharray', 
+                            isDashed ? [2, 2] : [1, 0]);
+                    } catch (error) {
+                        console.error(`Error updating ${level} border style:`, error);
+                    }
+                }
+            });
+        }
+
+        // Update border color
+        function updateBorderColor() {
+            const color = document.getElementById('borderColor')?.value || '#ffffff';
+            
+            // Update country border
+            if (map.getLayer('korea-country-border')) {
+                try {
+                    map.setPaintProperty('korea-country-border', 'line-color', color);
+                } catch (error) {
+                    console.error('Error updating country border color:', error);
+                }
+            }
+            
+            // Update all admin border layers
+            Object.keys(layerConfig).forEach(level => {
+                const layerId = layerConfig[level].id + '-border';
+                if (map.getLayer(layerId)) {
+                    try {
+                        map.setPaintProperty(layerId, 'line-color', color);
+                    } catch (error) {
+                        console.error(`Error updating ${level} border color:`, error);
+                    }
+                }
+            });
+        }
+
+        // Update selected region colors
+        function updateSelectedRegionColors() {
+            const newColor = document.getElementById('regionColor')?.value || '#7faef5';
+            
+            selectedRegions.forEach(region => {
+                region.color = newColor;
+                const layerId = layerConfig[region.level].id + '-fill';
+                if (map.getLayer(layerId) && region.feature.id !== undefined) {
+                    try {
+                        map.setFeatureState(
+                            { source: `korea-${region.level}-source`, id: region.feature.id },
+                            { selected: true, selectedColor: newColor }
+                        );
+                    } catch (error) {
+                        console.error('Error updating selected region color:', error);
+                    }
+                }
+            });
+
+            updateSelectedRegionsInfo();
+        }
+
+        // Update label visibility
+        function updateLabelVisibility() {
+            const show = document.getElementById('showLabels')?.checked || false;
+            const visibility = show ? 'visible' : 'none';
+            
+            Object.keys(layerConfig).forEach(level => {
+                const layerId = layerConfig[level].id + '-labels';
+                if (map.getLayer(layerId)) {
+                    try {
+                        const shouldShow = level === currentAdminLevel ? visibility : 'none';
+                        map.setLayoutProperty(layerId, 'visibility', shouldShow);
+                    } catch (error) {
+                        console.error(`Error updating ${level} label visibility:`, error);
+                    }
+                }
+            });
+        }
+
+        // Toggle route drawing
+        function toggleRouteDrawing() {
+            isDrawingRoute = !isDrawingRoute;
+            const button = document.getElementById('toggleRoute');
+            
+            if (button) {
+                if (isDrawingRoute) {
+                    button.textContent = '경로 그리기 완료';
+                    button.classList.add('active');
+                    map.getCanvas().style.cursor = 'crosshair';
+                    showToast('지도를 클릭하여 경로를 그리세요', 'info');
+                } else {
+                    button.textContent = '경로 그리기';
+                    button.classList.remove('active');
+                    map.getCanvas().style.cursor = '';
+                    showToast('경로 그리기가 완료되었습니다', 'success');
+                }
+            }
+        }
+
+        // Add point to route
+        function addRoutePoint(lngLat) {
+            routePoints.push([lngLat.lng, lngLat.lat]);
+            
+            // Add marker for route point
+            new mapboxgl.Marker({ color: '#ff0000' })
+                .setLngLat([lngLat.lng, lngLat.lat])
+                .addTo(map);
+            
+            // Draw route line if we have multiple points
+            if (routePoints.length > 1) {
+                updateRouteLine();
+            }
+            
+            showToast(`경로 포인트 ${routePoints.length} 추가됨`, 'success');
+        }
+
+        // Update route line on map
+        function updateRouteLine() {
+            const routeData = {
+                type: 'Feature',
+                geometry: {
+                    type: 'LineString',
+                    coordinates: routePoints
+                }
+            };
+            
+            if (map.getSource('route')) {
+                map.getSource('route').setData(routeData);
+            } else {
+                map.addSource('route', { type: 'geojson', data: routeData });
+                map.addLayer({
+                    id: 'route-line',
+                    type: 'line',
+                    source: 'route',
+                    paint: {
+                        'line-color': '#ff0000',
+                        'line-width': 4,
+                        'line-opacity': 0.8
+                    }
+                });
+            }
+        }
+
+        // Export map as PNG
         function exportMapAsPNG() {
             try {
                 const canvas = map.getCanvas();
@@ -559,7 +1224,43 @@
                 link.click();
                 showToast('지도가 PNG로 저장되었습니다', 'success');
             } catch (error) {
+                console.error('PNG export error:', error);
                 showError('PNG 내보내기 중 오류가 발생했습니다');
+            }
+        }
+
+        // Export selected regions as SVG
+        function exportSelectedRegionsAsSVG() {
+            if (selectedRegions.length === 0) {
+                showToast('선택된 구역이 없습니다', 'info');
+                return;
+            }
+            showToast('SVG 내보내기 기능은 개발 중입니다', 'info');
+        }
+
+        // Export route as SVG
+        function exportRouteAsSVG() {
+            if (routePoints.length < 2) {
+                showToast('경로가 설정되지 않았습니다', 'info');
+                return;
+            }
+            showToast('경로 SVG 내보내기 기능은 개발 중입니다', 'info');
+        }
+
+        // Update selected regions info display
+        function updateSelectedRegionsInfo() {
+            const infoDiv = document.getElementById('selectedInfo');
+            if (!infoDiv) return;
+            
+            if (selectedRegions.length === 0) {
+                infoDiv.innerHTML = '<h4>선택된 구역</h4><p>선택된 구역이 없습니다</p>';
+            } else {
+                let html = `<h4>선택된 구역 (${selectedRegions.length}개)</h4><div class="selected-list">`;
+                selectedRegions.forEach(region => {
+                    html += `<div style="color: ${region.color};">• ${region.name} (${layerConfig[region.level].name})</div>`;
+                });
+                html += '</div>';
+                infoDiv.innerHTML = html;
             }
         }
 
