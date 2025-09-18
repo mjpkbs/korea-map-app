@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>한국지도 웹앱</title>
+    
+    <!-- Mapbox GL JS -->
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.0.0/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.0.0/mapbox-gl.css' rel='stylesheet' />
+    
+    <!-- Mapbox Geocoder -->
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" type="text/css">
+    
+    <!-- External CSS (you can also inline this if needed) -->
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2 style="margin-bottom: 20px; color: #333;">한국지도 설정</h2>
+            
+            <!-- 행정구역 레벨 선택 -->
+            <div class="control-group">
+                <h3>행정구역 레벨</h3>
+                <div class="admin-level-selector">
+                    <button class="admin-btn active" data-level="sido">시도</button>
+                    <button class="admin-btn" data-level="sigungu">시군구</button>
+                    <button class="admin-btn" data-level="emd">읍면동</button>
+                </div>
+            </div>
+            
+            <!-- 지도 스타일 선택 -->
+            <div class="control-group">
+                <h3>지도 스타일</h3>
+                <div class="control-item">
+                    <label for="mapStyle">스타일 선택:</label>
+                    <select id="mapStyle">
+                        <option value="mapbox://styles/mapbox/streets-v12">Streets</option>
+                        <option value="mapbox://styles/mapbox/satellite-v9">Satellite</option>
+                        <option value="mapbox://styles/mapbox/outdoors-v12">Outdoors</option>
+                        <option value="mapbox://styles/mapbox/light-v11">Light</option>
+                        <option value="mapbox://styles/mapbox/dark-v11">Dark</option>
+                        <option value="mapbox://styles/kbsnews/cmd3179oj00q801ri8qrd2dl8">KBS 스타일 1</option>
+                        <option value="mapbox://styles/kbsnews/clsle8lhq008101rbgzbm0x8q">KBS 스타일 2</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 색상 설정 -->
+            <div class="control-group">
+                <h3>색상 설정</h3>
+                <div class="control-item">
+                    <label for="oceanColor">바다색:</label>
+                    <input type="color" id="oceanColor" value="#0f3564">
+                </div>
+                <div class="control-item">
+                    <label for="landColor">육지색:</label>
+                    <input type="color" id="landColor" value="#8896a1">
+                </div>
+                <div class="control-item">
+                    <label for="borderColor">경계선색:</label>
+                    <input type="color" id="borderColor" value="#ffffff">
+                </div>
+            </div>
+
+            <!-- 국가 경계선 설정 -->
+            <div class="control-group">
+                <h3>국가 경계선</h3>
+                <div class="control-item">
+                    <label for="countryBorderWidth">경계선 굵기:</label>
+                    <div class="slider-container">
+                        <input type="range" id="countryBorderWidth" min="1" max="10" value="3">
+                        <span class="slider-value" id="countryBorderValue">3</span>
+                    </div>
+                </div>
+                <div class="control-item">
+                    <label>
+                        <input type="checkbox" id="countryBorderDashed"> 점선으로 표시
+                    </label>
+                </div>
+            </div>
+
+            <!-- 행정구역 경계선 설정 -->
+            <div class="control-group">
+                <h3>행정구역 경계선</h3>
+                <div class="control-item">
+                    <label for="adminBorderWidth">경계선 굵기:</label>
+                    <div class="slider-container">
+                        <input type="range" id="adminBorderWidth" min="1" max="8" value="2">
+                        <span class="slider-value" id="adminBorderValue">2</span>
+                    </div>
+                </div>
+                <div class="control-item">
+                    <label>
+                        <input type="checkbox" id="adminBorderDashed"> 점선으로 표시
+                    </label>
+                </div>
+            </div>
+
+            <!-- 라벨 설정 -->
+            <div class="control-group">
+                <h3>라벨 설정</h3>
+                <div class="control-item">
+                    <label>
+                        <input type="checkbox" id="showLabels" checked> 행정구역 이름 표시
+                    </label>
+                </div>
+                <div class="control-item">
+                    <label>
+                        <input type="checkbox" id="showWater" checked> 강/호수 표시
+                    </label>
+                </div>
+            </div>
+
+            <!-- 행정구역 색상 선택 -->
+            <div class="control-group">
+                <h3>행정구역 색상</h3>
+                <div class="control-item">
+                    <label for="regionColor">선택된 구역 색상:</label>
+                    <input type="color" id="regionColor" value="#7faef5">
+                </div>
+                <div class="color-palette" id="colorPalette">
+                    <!-- 컬러 팔레트가 여기에 동적으로 생성됩니다 -->
+                </div>
+                <div class="control-item">
+                    <button class="btn btn-secondary" id="clearSelection">선택 해제</button>
+                </div>
+                <!-- 선택된 구역 정보 -->
+                <div class="selected-info" id="selectedInfo">
+                    <h4>선택된 구역</h4>
+                    <p>선택된 구역이 없습니다</p>
+                </div>
+            </div>
+
+            <!-- 경로 그리기 -->
+            <div class="control-group">
+                <h3>경로 그리기</h3>
+                <div class="route-controls">
+                    <button class="btn btn-secondary route-toggle" id="toggleRoute">경로 그리기</button>
+                </div>
+            </div>
+
+            <!-- 내보내기 -->
+            <div class="control-group">
+                <h3>내보내기</h3>
+                <div class="export-buttons">
+                    <button class="btn btn-primary" id="exportPNG">지도 PNG로 저장</button>
+                    <button class="btn btn-primary" id="exportSVG">선택 구역 SVG로 저장</button>
+                    <button class="btn btn-secondary" id="exportRoute">경로 SVG로 저장</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="map"></div>
+    </div>
+
+    <script>
+        // ============================================================================
+        // KOREA MAP APP - All JavaScript code included
+        // ============================================================================
+
+        // Set your Mapbox access token here
+        mapboxgl.accessToken = 'pk.eyJ1IjoibW1qanBwIiwiYSI6ImNtZmZnM3RwODBoYnEya3B6bnB3NW5zcHQifQ.6UON_8x8X84bxsCrURuggA';
+
+        // Global variables
+        let map;
+        let koreaGeoJsonData = null;
+        let selectedRegions = [];
+        let isDrawingRoute = false;
+        let routePoints = [];
+        let currentAdminLevel = 'sido';
+
+        // Color palette
+        const colorPalette = [
+            '#d6dade', '#b4bdc6', '#8896a1', '#546072', '#3c434f', '#242634',
+            '#7faef5', '#5a8edb', '#2f62af', '#1f4e95', '#0f3564', '#172c4d',
+            '#20ae98', '#22cc92', '#dd6f2d', '#f17d38', '#859cc1'
+        ];
+
+        // Layer configuration
+        const layerConfig = {
+            sido: { id: 'korea-sido', name: '시도', fillOpacity: 0.3, borderWidth: 3 },
+            sigungu: { id: 'korea-sigungu', name: '시군구', fillOpacity: 0.4, borderWidth: 2 },
+            emd: { id: 'korea-emd', name: '읍면동', fillOpacity: 0.5, borderWidth: 1 }
+        };
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing map...');
+            
+            // Check if mapboxgl is available
+            if (typeof mapboxgl === 'undefined') {
+                alert('Mapbox GL JS 라이브러리를 로드할 수 없습니다. 인터넷 연결을 확인해주세요.');
+                return;
+            }
+
+            // Check if access token is set
+            if (!mapboxgl.accessToken || mapboxgl.accessToken === 'YOUR_MAPBOX_ACCESS_TOKEN') {
+                alert('Mapbox access token이 설정되지 않았습니다. YOUR_MAPBOX_ACCESS_TOKEN을 실제 토큰으로 교체하세요.');
+                return;
+            }
+
+            initializeMap();
+        });
+
+        // Initialize Mapbox map
+        function initializeMap() {
+            map = new mapboxgl.Map({
+                container: 'map',
+                style: 'mapbox://styles/mapbox/streets-v12',
+                center: [127.7669, 35.9078],
+                zoom: 6.5,
+                maxBounds: [[120, 30], [135, 43]]
+            });
+
+            map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+            map.on('load', function() {
+                initializeColorPalette();
+                initializeControls();
+                initializeGeocoder();
+                loadGeoJsonData();
+                showToast('지도가 성공적으로 로드되었습니다', 'success');
+            });
+
+            map.on('error', function(e) {
+                console.error('Map error:', e);
+                showError('지도 로드 중 오류가 발생했습니다: ' + e.error.message);
+            });
+        }
+
+        // Load GeoJSON data
+        async function loadGeoJsonData() {
+            showLoading(true);
+            
+            try {
+                const response = await fetch('./data/korea.geojson');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                koreaGeoJsonData = await response.json();
+                console.log('GeoJSON data loaded:', koreaGeoJsonData);
+                
+                addGeoJsonSources();
+                addGeoJsonLayers();
+                setupMapInteractions();
+                
+                showToast('한국 행정구역 데이터가 성공적으로 로드되었습니다', 'success');
+                
+            } catch (error) {
+                console.error('Error loading GeoJSON:', error);
+                showError('GeoJSON 파일을 로드할 수 없습니다. data/korea.geojson 파일이 존재하는지 확인하세요.');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Add GeoJSON sources to map
+        function addGeoJsonSources() {
+            // You'll need to adjust these filters based on your actual GeoJSON structure
+            const sidoData = {
+                type: 'FeatureCollection',
+                features: koreaGeoJsonData.features.filter(feature => 
+                    feature.properties.admin_level === '4' || 
+                    feature.properties.level === 'sido' ||
+                    feature.properties.type === '시도'
+                )
+            };
+            
+            const sigunguData = {
+                type: 'FeatureCollection', 
+                features: koreaGeoJsonData.features.filter(feature =>
+                    feature.properties.admin_level === '5' || 
+                    feature.properties.level === 'sigungu' ||
+                    feature.properties.type === '시군구'
+                )
+            };
+            
+            const emdData = {
+                type: 'FeatureCollection',
+                features: koreaGeoJsonData.features.filter(feature =>
+                    feature.properties.admin_level === '8' || 
+                    feature.properties.level === 'emd' ||
+                    feature.properties.type === '읍면동'
+                )
+            };
+
+            map.addSource('korea-sido-source', { type: 'geojson', data: sidoData });
+            map.addSource('korea-sigungu-source', { type: 'geojson', data: sigunguData });
+            map.addSource('korea-emd-source', { type: 'geojson', data: emdData });
+            
+            window.koreaData = { sido: sidoData, sigungu: sigunguData, emd: emdData };
+        }
+
+        // Add GeoJSON layers to map
+        function addGeoJsonLayers() {
+            Object.keys(layerConfig).forEach(level => {
+                const config = layerConfig[level];
+                
+                map.addLayer({
+                    id: config.id + '-fill',
+                    type: 'fill',
+                    source: `korea-${level}-source`,
+                    paint: {
+                        'fill-color': [
+                            'case',
+                            ['boolean', ['feature-state', 'selected'], false],
+                            ['get', 'selectedColor', ['literal', '#7faef5']],
+                            '#8896a1'
+                        ],
+                        'fill-opacity': [
+                            'case',
+                            ['boolean', ['feature-state', 'hover'], false],
+                            config.fillOpacity + 0.2,
+                            config.fillOpacity
+                        ]
+                    }
+                });
+
+                map.addLayer({
+                    id: config.id + '-border',
+                    type: 'line',
+                    source: `korea-${level}-source`,
+                    paint: {
+                        'line-color': '#ffffff',
+                        'line-width': config.borderWidth,
+                        'line-opacity': 0.8
+                    }
+                });
+
+                map.addLayer({
+                    id: config.id + '-labels',
+                    type: 'symbol',
+                    source: `korea-${level}-source`,
+                    layout: {
+                        'text-field': ['get', 'name'],
+                        'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
+                        'text-size': level === 'sido' ? 14 : level === 'sigungu' ? 12 : 10,
+                        'text-anchor': 'center',
+                        'text-allow-overlap': false,
+                        'text-ignore-placement': false
+                    },
+                    paint: {
+                        'text-color': '#333333',
+                        'text-halo-color': '#ffffff',
+                        'text-halo-width': 2
+                    }
+                });
+
+                if (level !== 'sido') {
+                    map.setLayoutProperty(config.id + '-fill', 'visibility', 'none');
+                    map.setLayoutProperty(config.id + '-border', 'visibility', 'none');
+                    map.setLayoutProperty(config.id + '-labels', 'visibility', 'none');
+                }
+            });
+        }
+
+        // Initialize color palette
+        function initializeColorPalette() {
+            const paletteContainer = document.getElementById('colorPalette');
+            paletteContainer.innerHTML = '';
+            
+            colorPalette.forEach(color => {
+                const colorItem = document.createElement('div');
+                colorItem.className = 'color-item';
+                colorItem.style.backgroundColor = color;
+                colorItem.addEventListener('click', () => selectColor(color, colorItem));
+                paletteContainer.appendChild(colorItem);
+            });
+        }
+
+        // Initialize geocoder
+        function initializeGeocoder() {
+            const geocoder = new MapboxGeocoder({
+                accessToken: mapboxgl.accessToken,
+                mapboxgl: mapboxgl,
+                countries: 'kr',
+                language: 'ko',
+                placeholder: '주소나 장소명을 검색하세요...',
+                bbox: [124, 33, 132, 39]
+            });
+
+            map.addControl(geocoder, 'top-left');
+        }
+
+        // Initialize controls
+        function initializeControls() {
+            document.querySelectorAll('.admin-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const level = e.target.dataset.level;
+                    switchAdminLevel(level);
+                });
+            });
+
+            document.getElementById('mapStyle')?.addEventListener('change', function(e) {
+                map.setStyle(e.target.value);
+            });
+
+            document.getElementById('countryBorderWidth')?.addEventListener('input', function(e) {
+                document.getElementById('countryBorderValue').textContent = e.target.value;
+            });
+
+            document.getElementById('adminBorderWidth')?.addEventListener('input', function(e) {
+                document.getElementById('adminBorderValue').textContent = e.target.value;
+            });
+
+            document.getElementById('exportPNG')?.addEventListener('click', exportMapAsPNG);
+            document.getElementById('clearSelection')?.addEventListener('click', clearRegionSelection);
+        }
+
+        // Setup map interactions
+        function setupMapInteractions() {
+            Object.keys(layerConfig).forEach(level => {
+                const layerId = layerConfig[level].id + '-fill';
+
+                map.on('click', layerId, (e) => {
+                    const feature = e.features[0];
+                    toggleRegionSelection(feature, level);
+                });
+
+                map.on('mouseenter', layerId, () => {
+                    map.getCanvas().style.cursor = 'pointer';
+                });
+
+                map.on('mouseleave', layerId, () => {
+                    map.getCanvas().style.cursor = '';
+                });
+            });
+        }
+
+        // Switch administrative level
+        function switchAdminLevel(level) {
+            currentAdminLevel = level;
+            
+            document.querySelectorAll('.admin-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-level="${level}"]`).classList.add('active');
+            
+            Object.keys(layerConfig).forEach(layerLevel => {
+                const config = layerConfig[layerLevel];
+                const visibility = layerLevel === level ? 'visible' : 'none';
+                
+                if (map.getLayer(config.id + '-fill')) {
+                    map.setLayoutProperty(config.id + '-fill', 'visibility', visibility);
+                    map.setLayoutProperty(config.id + '-border', 'visibility', visibility);
+                    map.setLayoutProperty(config.id + '-labels', 'visibility', visibility);
+                }
+            });
+            
+            showToast(`${layerConfig[level].name} 레벨로 전환되었습니다`, 'success');
+        }
+
+        // Toggle region selection
+        function toggleRegionSelection(feature, level) {
+            const regionName = feature.properties.name || feature.properties.NAME || 'Unknown';
+            showToast(`${regionName} 클릭됨`, 'success');
+        }
+
+        // Select color
+        function selectColor(color, colorItem) {
+            document.getElementById('regionColor').value = color;
+            document.querySelectorAll('.color-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            colorItem.classList.add('selected');
+        }
+
+        // Clear selection
+        function clearRegionSelection() {
+            selectedRegions = [];
+            showToast('모든 선택이 해제되었습니다', 'success');
+        }
+
+        // Export PNG
+        function exportMapAsPNG() {
+            try {
+                const canvas = map.getCanvas();
+                const link = document.createElement('a');
+                link.download = `korea-map-${Date.now()}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+                showToast('지도가 PNG로 저장되었습니다', 'success');
+            } catch (error) {
+                showError('PNG 내보내기 중 오류가 발생했습니다');
+            }
+        }
+
+        // Utility functions
+        function showLoading(show) {
+            // Simple loading implementation
+            console.log(show ? 'Loading...' : 'Loading complete');
+        }
+
+        function showToast(message, type = 'info') {
+            console.log(`${type.toUpperCase()}: ${message}`);
+            // You can implement actual toast notifications here
+        }
+
+        function showError(message) {
+            console.error(message);
+            alert(message);
+        }
+    </script>
+</body>
+</html>
