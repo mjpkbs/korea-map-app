@@ -14,15 +14,11 @@
     <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" type="text/css">
     
     <style>
-        /* Reset and base styles */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
-        // Update border color
-        function updateBorderColor() {
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -30,13 +26,11 @@
             overflow: hidden;
         }
 
-        /* Main container layout */
         .container {
             display: flex;
             height: 100vh;
         }
 
-        /* Sidebar styles */
         .sidebar {
             width: 350px;
             background: white;
@@ -44,7 +38,6 @@
             overflow-y: auto;
             box-shadow: 2px 0 5px rgba(0,0,0,0.1);
             z-index: 1000;
-            position: relative;
         }
 
         .sidebar h2 {
@@ -56,18 +49,12 @@
             padding-bottom: 10px;
         }
 
-        /* Control group styles */
         .control-group {
             margin-bottom: 25px;
             padding: 15px;
             border: 1px solid #e0e0e0;
             border-radius: 8px;
             background: #f9f9f9;
-            transition: box-shadow 0.2s ease;
-        }
-
-        .control-group:hover {
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
         .control-group h3 {
@@ -79,7 +66,6 @@
             font-weight: 600;
         }
 
-        /* Control item styles */
         .control-item {
             margin-bottom: 12px;
         }
@@ -92,7 +78,6 @@
             font-size: 14px;
         }
 
-        /* Administrative level selector */
         .admin-level-selector {
             display: flex;
             gap: 5px;
@@ -120,7 +105,6 @@
             border-color: #007bff;
         }
 
-        /* Slider styles */
         .slider-container {
             display: flex;
             align-items: center;
@@ -133,11 +117,6 @@
             border-radius: 3px;
             background: #ddd;
             outline: none;
-            transition: background 0.2s;
-        }
-
-        input[type="range"]:hover {
-            background: #ccc;
         }
 
         input[type="range"]::-webkit-slider-thumb {
@@ -147,20 +126,6 @@
             border-radius: 50%;
             background: #007bff;
             cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        input[type="range"]::-webkit-slider-thumb:hover {
-            background: #0056b3;
-        }
-
-        input[type="range"]::-moz-range-thumb {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: #007bff;
-            cursor: pointer;
-            border: none;
         }
 
         .slider-value {
@@ -171,21 +136,14 @@
             font-size: 14px;
         }
 
-        /* Color input styles */
         input[type="color"] {
             width: 50px;
             height: 30px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            transition: transform 0.2s;
         }
 
-        input[type="color"]:hover {
-            transform: scale(1.05);
-        }
-
-        /* Checkbox styles */
         input[type="checkbox"] {
             width: 18px;
             height: 18px;
@@ -193,7 +151,6 @@
             cursor: pointer;
         }
 
-        /* Select styles */
         select {
             width: 100%;
             padding: 8px;
@@ -202,15 +159,8 @@
             background: white;
             font-size: 14px;
             cursor: pointer;
-            transition: border-color 0.2s;
         }
 
-        select:hover, select:focus {
-            border-color: #007bff;
-            outline: none;
-        }
-
-        /* Color palette styles */
         .color-palette {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
@@ -225,7 +175,6 @@
             cursor: pointer;
             border: 2px solid transparent;
             transition: all 0.2s;
-            position: relative;
         }
 
         .color-item:hover {
@@ -238,18 +187,6 @@
             border-width: 3px;
         }
 
-        .color-item.selected::after {
-            content: '✓';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-weight: bold;
-            text-shadow: 0 0 3px rgba(0,0,0,0.8);
-        }
-
-        /* Button styles */
         .btn {
             padding: 10px 15px;
             border: none;
@@ -259,8 +196,6 @@
             transition: all 0.2s;
             font-size: 14px;
             text-align: center;
-            display: inline-block;
-            text-decoration: none;
         }
 
         .btn-primary {
@@ -270,7 +205,6 @@
 
         .btn-primary:hover {
             background: #0056b3;
-            transform: translateY(-1px);
         }
 
         .btn-secondary {
@@ -280,7 +214,6 @@
 
         .btn-secondary:hover {
             background: #545b62;
-            transform: translateY(-1px);
         }
 
         .btn-danger {
@@ -292,17 +225,6 @@
             background: #c82333;
         }
 
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn:disabled:hover {
-            transform: none;
-        }
-
-        /* Export buttons */
         .export-buttons {
             display: flex;
             flex-direction: column;
@@ -313,23 +235,16 @@
             width: 100%;
         }
 
-        /* Route controls */
         .route-controls {
             display: flex;
             gap: 10px;
             align-items: center;
         }
 
-        .route-toggle {
-            background: #28a745;
-            color: white;
-        }
-
         .route-toggle.active {
             background: #dc3545;
         }
 
-        /* Selected regions info */
         .selected-info {
             background: #e7f3ff;
             border: 1px solid #007bff;
@@ -350,14 +265,11 @@
             font-size: 11px;
         }
 
-        /* Map container */
         #map {
             flex: 1;
             height: 100vh;
-            position: relative;
         }
 
-        /* Responsive design */
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
@@ -374,25 +286,6 @@
                 height: 60vh;
                 order: 1;
             }
-        }
-
-        /* Scrollbar styles for webkit browsers */
-        .sidebar::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .sidebar::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 3px;
-        }
-
-        .sidebar::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 3px;
-        }
-
-        .sidebar::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
         }
     </style>
 </head>
@@ -535,7 +428,7 @@
 
     <script>
         // ============================================================================
-        // KOREA MAP APP - Complete Application
+        // KOREA MAP APP - Clean Version
         // ============================================================================
 
         // Set your Mapbox access token here
@@ -567,32 +460,33 @@
             console.log('DOM loaded, initializing map...');
             
             if (typeof mapboxgl === 'undefined') {
-                alert('Mapbox GL JS 라이브러리를 로드할 수 없습니다. 인터넷 연결을 확인해주세요.');
+                alert('Mapbox GL JS 라이브러리를 로드할 수 없습니다.');
                 return;
             }
 
             if (!mapboxgl.accessToken || mapboxgl.accessToken === 'YOUR_MAPBOX_ACCESS_TOKEN') {
-                alert('Mapbox access token이 설정되지 않았습니다. YOUR_MAPBOX_ACCESS_TOKEN을 실제 토큰으로 교체하세요.');
+                alert('Mapbox access token을 설정해주세요.');
                 return;
             }
 
             initializeMap();
         });
 
-        // Initialize Mapbox map
+        // Initialize map
         function initializeMap() {
             map = new mapboxgl.Map({
                 container: 'map',
-                style: 'mapbox://styles/mmjjpp/cmfqi0c3200f301r8cgqrfv62', // 새로운 기본 스타일
+                style: 'mapbox://styles/mmjjpp/cmfqi0c3200f301r8cgqrfv62',
                 center: [127.7669, 35.9078],
                 zoom: 6.5,
                 maxBounds: [[120, 30], [135, 43]],
-                preserveDrawingBuffer: true // PNG 내보내기를 위해 필요
+                preserveDrawingBuffer: true
             });
 
             map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
             map.on('load', function() {
+                console.log('Map loaded successfully');
                 initializeColorPalette();
                 initializeControls();
                 initializeGeocoder();
@@ -602,264 +496,140 @@
 
             map.on('error', function(e) {
                 console.error('Map error:', e);
-                showError('지도 로드 중 오류가 발생했습니다: ' + e.error.message);
+                showError('지도 로드 중 오류: ' + e.error.message);
             });
         }
 
-        // Load separate GeoJSON files
+        // Load GeoJSON data
         async function loadGeoJsonData() {
             showLoading(true);
             
             try {
-                console.log('Loading separate GeoJSON files...');
+                console.log('Loading GeoJSON files...');
                 
-                // 캐시 방지를 위한 타임스탬프 추가
                 const timestamp = Date.now();
-                
-                // Load all three files simultaneously with cache-busting
                 const [sidoResponse, sigunguResponse, emdResponse] = await Promise.all([
-                    fetch(`./data/sido_new.geojson?t=${timestamp}`),
-                    fetch(`./data/sigungu_new.geojson?t=${timestamp}`),
-                    fetch(`./data/emd_new.geojson?t=${timestamp}`)
+                    fetch(`./data/sido.geojson?t=${timestamp}`),
+                    fetch(`./data/sigungu.geojson?t=${timestamp}`),
+                    fetch(`./data/emd.geojson?t=${timestamp}`)
                 ]);
                 
-                // Check if all requests were successful
-                if (!sidoResponse.ok) throw new Error(`Failed to load sido_new.geojson: ${sidoResponse.status}`);
-                if (!sigunguResponse.ok) throw new Error(`Failed to load sigungu_new.geojson: ${sigunguResponse.status}`);
-                if (!emdResponse.ok) throw new Error(`Failed to load emd_new.geojson: ${emdResponse.status}`);
+                if (!sidoResponse.ok) throw new Error(`Failed to load sido.geojson: ${sidoResponse.status}`);
+                if (!sigunguResponse.ok) throw new Error(`Failed to load sigungu.geojson: ${sigunguResponse.status}`);
+                if (!emdResponse.ok) throw new Error(`Failed to load emd.geojson: ${emdResponse.status}`);
                 
-                // Parse JSON data
                 const [sidoData, sigunguData, emdData] = await Promise.all([
                     sidoResponse.json(),
                     sigunguResponse.json(),
                     emdResponse.json()
                 ]);
                 
-                console.log('GeoJSON files loaded successfully:');
-                console.log(`- Sido features: ${sidoData.features.length}`);
-                console.log(`- Sigungu features: ${sigunguData.features.length}`);
-                console.log(`- Emd features: ${emdData.features.length}`);
+                console.log('GeoJSON loaded - Sido:', sidoData.features.length, 'Sigungu:', sigunguData.features.length, 'Emd:', emdData.features.length);
                 
-                // Store the data globally
-                window.koreaData = {
-                    sido: sidoData,
-                    sigungu: sigunguData,
-                    emd: emdData
-                };
+                window.koreaData = { sido: sidoData, sigungu: sigunguData, emd: emdData };
                 
-                // Add sources and layers
                 addGeoJsonSources();
                 addGeoJsonLayers();
                 setupMapInteractions();
                 
-                // Store the data globally
-                window.koreaData = {
-                    sido: sidoData,
-                    sigungu: sigunguData,
-                    emd: emdData
-                };
-                
-                // Add sources and layers
-                addGeoJsonSources();
-                addGeoJsonLayers();
-                setupMapInteractions();
-                
-                // Ensure proper initial state
-                setTimeout(() => {
-                    // Make sure we start with sido level and correct label visibility
-                    switchAdminLevel('sido');
-                }, 300);
-                
-                showToast(`한국 행정구역 데이터 로드 완료 (시도: ${sidoData.features.length}, 시군구: ${sigunguData.features.length}, 읍면동: ${emdData.features.length})`, 'success');
+                showToast(`데이터 로드 완료 (시도: ${sidoData.features.length}, 시군구: ${sigunguData.features.length}, 읍면동: ${emdData.features.length})`, 'success');
                 
             } catch (error) {
-                console.error('Error loading GeoJSON files:', error);
-                showError(`GeoJSON 파일 로드 실패: ${error.message}. data/ 폴더에 sido.geojson, sigungu.geojson, emd.geojson 파일이 있는지 확인하세요.`);
+                console.error('Error loading GeoJSON:', error);
+                showError(`GeoJSON 로드 실패: ${error.message}`);
             } finally {
                 showLoading(false);
             }
         }
 
-        // Add GeoJSON sources to map
+        // Add GeoJSON sources
         function addGeoJsonSources() {
-            console.log('Adding GeoJSON sources...');
-            
-            // Remove existing sources if they exist
             ['sido', 'sigungu', 'emd'].forEach(level => {
                 if (map.getSource(`korea-${level}-source`)) {
                     map.removeSource(`korea-${level}-source`);
                 }
             });
 
-            try {
-                // Use the pre-loaded data directly (no filtering needed since files are already separated)
-                const { sido: sidoData, sigungu: sigunguData, emd: emdData } = window.koreaData;
-                
-                // Add sources to map
-                map.addSource('korea-sido-source', { type: 'geojson', data: sidoData });
-                map.addSource('korea-sigungu-source', { type: 'geojson', data: sigunguData });
-                map.addSource('korea-emd-source', { type: 'geojson', data: emdData });
-                
-                console.log('GeoJSON sources added successfully');
-            } catch (error) {
-                console.error('Error adding GeoJSON sources:', error);
-                throw error;
-            }
+            const { sido, sigungu, emd } = window.koreaData;
+            map.addSource('korea-sido-source', { type: 'geojson', data: sido });
+            map.addSource('korea-sigungu-source', { type: 'geojson', data: sigungu });
+            map.addSource('korea-emd-source', { type: 'geojson', data: emd });
         }
 
-        // Add GeoJSON layers to map
+        // Add GeoJSON layers
         function addGeoJsonLayers() {
             Object.keys(layerConfig).forEach(level => {
                 const config = layerConfig[level];
                 
-                // Check if source exists before adding layers
-                if (!map.getSource(`korea-${level}-source`)) {
-                    console.warn(`Source korea-${level}-source does not exist`);
-                    return;
-                }
+                if (!map.getSource(`korea-${level}-source`)) return;
                 
-                // Fill layer with simple color (no expressions initially)
-                try {
-                    map.addLayer({
-                        id: config.id + '-fill',
-                        type: 'fill',
-                        source: `korea-${level}-source`,
-                        paint: {
-                            'fill-color': '#8896a1',  // Simple default color
-                            'fill-opacity': config.fillOpacity
-                        }
-                    });
-                    console.log(`Added fill layer for ${level}`);
-                } catch (error) {
-                    console.error(`Error adding fill layer for ${level}:`, error);
-                    return; // Skip this level if fill layer fails
-                }
+                // Fill layer
+                map.addLayer({
+                    id: config.id + '-fill',
+                    type: 'fill',
+                    source: `korea-${level}-source`,
+                    paint: {
+                        'fill-color': '#8896a1',
+                        'fill-opacity': config.fillOpacity
+                    }
+                });
 
                 // Border layer
-                try {
-                    map.addLayer({
-                        id: config.id + '-border',
-                        type: 'line',
-                        source: `korea-${level}-source`,
-                        paint: {
-                            'line-color': '#ffffff',
-                            'line-width': config.borderWidth,
-                            'line-opacity': 0.8
-                        }
-                    });
-                    console.log(`Added border layer for ${level}`);
-                } catch (error) {
-                    console.error(`Error adding border layer for ${level}:`, error);
-                }
-
-                // Label layer using correct field names for each level
-                try {
-                    let textField;
-                    switch(level) {
-                        case 'sido':
-                            textField = ['get', 'SIDO_NM'];
-                            break;
-                        case 'sigungu':
-                            textField = ['get', 'SIGUNGU_NM'];
-                            break;
-                        case 'emd':
-                            textField = ['get', 'ADM_NM'];
-                            break;
-                        default:
-                            textField = ['get', 'ADM_NM']; // fallback
+                map.addLayer({
+                    id: config.id + '-border',
+                    type: 'line',
+                    source: `korea-${level}-source`,
+                    paint: {
+                        'line-color': '#ffffff',
+                        'line-width': config.borderWidth,
+                        'line-opacity': 0.8
                     }
+                });
 
-                    map.addLayer({
-                        id: config.id + '-labels',
-                        type: 'symbol',
-                        source: `korea-${level}-source`,
-                        layout: {
-                            'text-field': textField,
-                            'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
-                            'text-size': level === 'sido' ? 14 : level === 'sigungu' ? 12 : 10,
-                            'text-anchor': 'center',
-                            'text-allow-overlap': false,
-                            'text-ignore-placement': false
-                        },
-                        paint: {
-                            'text-color': '#333333',
-                            'text-halo-color': '#ffffff',
-                            'text-halo-width': 2
-                        }
-                    });
-                    console.log(`Added label layer for ${level}`);
-                } catch (error) {
-                    console.error(`Error adding label layer for ${level}:`, error);
+                // Label layer
+                let textField;
+                switch(level) {
+                    case 'sido': textField = ['get', 'SIDO_NM']; break;
+                    case 'sigungu': textField = ['get', 'SIGUNGU_NM']; break;
+                    case 'emd': textField = ['get', 'ADM_NM']; break;
+                    default: textField = ['get', 'ADM_NM'];
                 }
 
-                // Initially hide all layers except sido, and hide ALL labels initially
+                map.addLayer({
+                    id: config.id + '-labels',
+                    type: 'symbol',
+                    source: `korea-${level}-source`,
+                    layout: {
+                        'text-field': textField,
+                        'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
+                        'text-size': level === 'sido' ? 14 : level === 'sigungu' ? 12 : 10,
+                        'text-anchor': 'center'
+                    },
+                    paint: {
+                        'text-color': '#333333',
+                        'text-halo-color': '#ffffff',
+                        'text-halo-width': 2
+                    }
+                });
+
+                // Hide non-sido layers initially
                 if (level !== 'sido') {
-                    try {
-                        if (map.getLayer(config.id + '-fill')) {
-                            map.setLayoutProperty(config.id + '-fill', 'visibility', 'none');
-                        }
-                        if (map.getLayer(config.id + '-border')) {
-                            map.setLayoutProperty(config.id + '-border', 'visibility', 'none');
-                        }
-                        if (map.getLayer(config.id + '-labels')) {
-                            map.setLayoutProperty(config.id + '-labels', 'visibility', 'none');
-                        }
-                    } catch (error) {
-                        console.error(`Error setting visibility for ${level}:`, error);
-                    }
+                    map.setLayoutProperty(config.id + '-fill', 'visibility', 'none');
+                    map.setLayoutProperty(config.id + '-border', 'visibility', 'none');
+                    map.setLayoutProperty(config.id + '-labels', 'visibility', 'none');
                 } else {
-                    // Even for sido, initially hide labels - they will be shown by setupColorExpressions
-                    try {
-                        if (map.getLayer(config.id + '-labels')) {
-                            map.setLayoutProperty(config.id + '-labels', 'visibility', 'none');
-                        }
-                    } catch (error) {
-                        console.error(`Error hiding sido labels initially:`, error);
-                    }
+                    // Show sido labels only if checkbox is checked
+                    const showLabels = document.getElementById('showLabels').checked;
+                    map.setLayoutProperty(config.id + '-labels', 'visibility', showLabels ? 'visible' : 'none');
                 }
             });
 
-            // Add country border layer using sido source
-            try {
-                if (map.getSource('korea-sido-source')) {
-                    map.addLayer({
-                        id: 'korea-country-border',
-                        type: 'line',
-                        source: 'korea-sido-source',
-                        paint: {
-                            'line-color': '#ffffff',
-                            'line-width': 4,
-                            'line-opacity': 1
-                        }
-                    });
-                    console.log('Added country border layer');
-                }
-            } catch (error) {
-                console.error('Error adding country border layer:', error);
-            }
-
-            // After all layers are added, set up the color expression
-            setTimeout(() => {
-                setupColorExpressions();
-            }, 100);
+            // Setup colors after layer creation
+            setTimeout(setupColorExpressions, 100);
         }
 
-        // Setup color expressions after layers are created
+        // Setup color expressions
         function setupColorExpressions() {
-            // First, hide ALL labels from all levels
-            Object.keys(layerConfig).forEach(level => {
-                const labelLayerId = layerConfig[level].id + '-labels';
-                if (map.getLayer(labelLayerId)) {
-                    try {
-                        map.setLayoutProperty(labelLayerId, 'visibility', 'none');
-                        console.log(`Initially hiding all labels for ${level}`);
-                    } catch (error) {
-                        console.error(`Error hiding labels for ${level}:`, error);
-                    }
-                }
-            });
-
-            // Then set up colors and show only current level labels
             Object.keys(layerConfig).forEach(level => {
                 const layerId = layerConfig[level].id + '-fill';
                 if (map.getLayer(layerId)) {
@@ -870,61 +640,24 @@
                             '#7faef5',
                             '#8896a1'
                         ]);
-                        console.log(`Set up color expression for ${level}`);
                     } catch (error) {
-                        console.error(`Error setting up color expression for ${level}:`, error);
-                        // If expression fails, use data-driven approach
-                        setupDataDrivenColors(level);
+                        console.warn('Color expression failed for', level);
                     }
                 }
             });
-
-            // Finally, show labels only for current admin level if checkbox is checked
-            setTimeout(() => {
-                updateLabelVisibility();
-            }, 200);
-        }
-
-        // Fallback: Data-driven coloring approach
-        function setupDataDrivenColors(level) {
-            console.log(`Using data-driven approach for ${level}`);
-            // This approach modifies the source data directly
-            const source = map.getSource(`korea-${level}-source`);
-            if (source) {
-                const data = source._data;
-                data.features.forEach(feature => {
-                    if (!feature.properties.selected) {
-                        feature.properties.selected = false;
-                    }
-                });
-                
-                const layerId = layerConfig[level].id + '-fill';
-                if (map.getLayer(layerId)) {
-                    try {
-                        map.setPaintProperty(layerId, 'fill-color', [
-                            'case',
-                            ['==', ['get', 'selected'], true],
-                            '#7faef5',
-                            '#8896a1'
-                        ]);
-                    } catch (error) {
-                        console.error(`Data-driven approach also failed for ${level}:`, error);
-                    }
-                }
-            }
         }
 
         // Initialize color palette
         function initializeColorPalette() {
-            const paletteContainer = document.getElementById('colorPalette');
-            paletteContainer.innerHTML = '';
+            const container = document.getElementById('colorPalette');
+            container.innerHTML = '';
             
             colorPalette.forEach(color => {
-                const colorItem = document.createElement('div');
-                colorItem.className = 'color-item';
-                colorItem.style.backgroundColor = color;
-                colorItem.addEventListener('click', () => selectColor(color, colorItem));
-                paletteContainer.appendChild(colorItem);
+                const item = document.createElement('div');
+                item.className = 'color-item';
+                item.style.backgroundColor = color;
+                item.addEventListener('click', () => selectColor(color, item));
+                container.appendChild(item);
             });
         }
 
@@ -935,185 +668,85 @@
                 mapboxgl: mapboxgl,
                 countries: 'kr',
                 language: 'ko',
-                placeholder: '주소나 장소명을 검색하세요...',
-                bbox: [124, 33, 132, 39]
+                placeholder: '주소나 장소명을 검색하세요...'
             });
-
             map.addControl(geocoder, 'top-left');
         }
 
         // Initialize controls
         function initializeControls() {
-            // Administrative level buttons
+            // Admin level buttons
             document.querySelectorAll('.admin-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    const level = e.target.dataset.level;
-                    switchAdminLevel(level);
+                    switchAdminLevel(e.target.dataset.level);
                 });
             });
 
-            // Map style selector
-            document.getElementById('mapStyle')?.addEventListener('change', function(e) {
-                const newStyle = e.target.value;
-                showLoading(true);
-                
-                map.setStyle(newStyle);
-                
-                // Re-add layers after style change
+            // Map style
+            document.getElementById('mapStyle').addEventListener('change', function(e) {
+                map.setStyle(e.target.value);
                 map.once('styledata', () => {
-                    console.log('Style changed, re-adding layers...');
-                    
                     setTimeout(() => {
                         if (window.koreaData) {
-                            try {
-                                addGeoJsonSources();
-                                addGeoJsonLayers();
-                                setupMapInteractions();
-                                
-                                // Re-apply current admin level and selections
-                                setTimeout(() => {
-                                    // First ensure correct level is shown
-                                    switchAdminLevel(currentAdminLevel);
-                                    
-                                    // Then re-apply selections and colors
-                                    selectedRegions.forEach(region => {
-                                        if (region.feature.id !== undefined && region.feature.id !== null) {
-                                            try {
-                                                map.setFeatureState(
-                                                    { source: `korea-${region.level}-source`, id: region.feature.id },
-                                                    { selected: true }
-                                                );
-                                            } catch (error) {
-                                                console.debug('Error re-applying selection:', error);
-                                            }
-                                        }
-                                    });
-                                    updateLayerColors();
-                                }, 300);
-                                
-                                showToast('지도 스타일이 변경되었습니다', 'success');
-                            } catch (error) {
-                                console.error('Error re-adding layers after style change:', error);
-                                showError('스타일 변경 후 레이어 추가 중 오류가 발생했습니다');
-                            }
+                            addGeoJsonSources();
+                            addGeoJsonLayers();
+                            setupMapInteractions();
+                            switchAdminLevel(currentAdminLevel);
                         }
-                        showLoading(false);
                     }, 500);
                 });
             });
 
-            // Slider event listeners
-            document.getElementById('countryBorderWidth')?.addEventListener('input', function(e) {
+            // Sliders
+            document.getElementById('countryBorderWidth').addEventListener('input', function(e) {
                 document.getElementById('countryBorderValue').textContent = e.target.value;
-                updateCountryBorderStyle();
             });
 
-            document.getElementById('adminBorderWidth')?.addEventListener('input', function(e) {
+            document.getElementById('adminBorderWidth').addEventListener('input', function(e) {
                 document.getElementById('adminBorderValue').textContent = e.target.value;
-                updateAdminBorderStyle();
             });
 
-            // Color change event listeners
-            document.getElementById('oceanColor')?.addEventListener('change', updateMapColors);
-            document.getElementById('landColor')?.addEventListener('change', updateMapColors);
-            document.getElementById('borderColor')?.addEventListener('change', updateBorderColor);
-            document.getElementById('regionColor')?.addEventListener('change', updateSelectedRegionColors);
-            
-            // Checkbox event listeners
-            document.getElementById('countryBorderDashed')?.addEventListener('change', updateCountryBorderStyle);
-            document.getElementById('adminBorderDashed')?.addEventListener('change', updateAdminBorderStyle);
-            document.getElementById('showLabels')?.addEventListener('change', updateLabelVisibility);
+            // Colors
+            document.getElementById('oceanColor').addEventListener('change', updateMapColors);
+            document.getElementById('landColor').addEventListener('change', updateMapColors);
+            document.getElementById('borderColor').addEventListener('change', updateBorderColor);
+            document.getElementById('regionColor').addEventListener('change', updateSelectedRegionColors);
 
-            // Button event listeners
-            document.getElementById('exportPNG')?.addEventListener('click', exportMapAsPNG);
-            document.getElementById('exportSVG')?.addEventListener('click', exportSelectedRegionsAsSVG);
-            document.getElementById('exportRoute')?.addEventListener('click', exportRouteAsSVG);
-            document.getElementById('clearSelection')?.addEventListener('click', clearRegionSelection);
-            document.getElementById('toggleRoute')?.addEventListener('click', toggleRouteDrawing);
-            document.getElementById('clearRoute')?.addEventListener('click', clearRoute);
+            // Checkboxes
+            document.getElementById('showLabels').addEventListener('change', updateLabelVisibility);
+
+            // Buttons
+            document.getElementById('exportPNG').addEventListener('click', exportMapAsPNG);
+            document.getElementById('exportSVG').addEventListener('click', exportSelectedRegionsAsSVG);
+            document.getElementById('exportRoute').addEventListener('click', exportRouteAsSVG);
+            document.getElementById('clearSelection').addEventListener('click', clearRegionSelection);
+            document.getElementById('toggleRoute').addEventListener('click', toggleRouteDrawing);
+            document.getElementById('clearRoute').addEventListener('click', clearRoute);
         }
 
         // Setup map interactions
         function setupMapInteractions() {
-            let hoveredFeatureId = null;
-            let hoveredLevel = null;
-
             Object.keys(layerConfig).forEach(level => {
                 const layerId = layerConfig[level].id + '-fill';
 
-                // Click to select region
                 map.on('click', layerId, (e) => {
                     if (isDrawingRoute) {
                         addRoutePoint(e.lngLat);
                         return;
                     }
                     
-                    const feature = e.features[0];
-                    toggleRegionSelection(feature, level);
+                    toggleRegionSelection(e.features[0], level);
                 });
 
-                // Hover effects - with enhanced error handling
-                map.on('mouseenter', layerId, (e) => {
+                map.on('mouseenter', layerId, () => {
                     map.getCanvas().style.cursor = 'pointer';
-                    
-                    // Clear previous hover state
-                    if (hoveredFeatureId !== null && hoveredLevel) {
-                        try {
-                            if (hoveredFeatureId !== undefined) {
-                                map.setFeatureState(
-                                    { source: `korea-${hoveredLevel}-source`, id: hoveredFeatureId },
-                                    { hover: false }
-                                );
-                            }
-                        } catch (error) {
-                            // Silently handle hover state errors
-                            console.debug('Previous hover state clear failed:', error);
-                        }
-                    }
-                    
-                    // Set new hover state only if feature has id
-                    const feature = e.features[0];
-                    if (feature && (feature.id !== undefined && feature.id !== null)) {
-                        hoveredFeatureId = feature.id;
-                        hoveredLevel = level;
-                        
-                        try {
-                            map.setFeatureState(
-                                { source: `korea-${level}-source`, id: hoveredFeatureId },
-                                { hover: true }
-                            );
-                        } catch (error) {
-                            console.debug('Hover state set failed:', error);
-                            hoveredFeatureId = null;
-                            hoveredLevel = null;
-                        }
-                    } else {
-                        // Feature doesn't have ID, just show cursor change
-                        hoveredFeatureId = null;
-                        hoveredLevel = null;
-                    }
                 });
 
                 map.on('mouseleave', layerId, () => {
                     map.getCanvas().style.cursor = '';
-                    
-                    if (hoveredFeatureId !== null && hoveredLevel && hoveredFeatureId !== undefined) {
-                        try {
-                            map.setFeatureState(
-                                { source: `korea-${hoveredLevel}-source`, id: hoveredFeatureId },
-                                { hover: false }
-                            );
-                        } catch (error) {
-                            console.debug('Hover state clear failed:', error);
-                        }
-                    }
-                    
-                    hoveredFeatureId = null;
-                    hoveredLevel = null;
                 });
             });
 
-            // Click on map for route drawing
             map.on('click', (e) => {
                 if (isDrawingRoute && !e.defaultPrevented) {
                     addRoutePoint(e.lngLat);
@@ -1121,47 +754,33 @@
             });
         }
 
-        // Switch administrative level
+        // Switch admin level
         function switchAdminLevel(level) {
             currentAdminLevel = level;
             
-            // Update button states
             document.querySelectorAll('.admin-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
             document.querySelector(`[data-level="${level}"]`).classList.add('active');
             
-            // First, hide ALL layers and labels
+            // Hide all layers first
             Object.keys(layerConfig).forEach(layerLevel => {
                 const config = layerConfig[layerLevel];
-                
                 if (map.getLayer(config.id + '-fill')) {
-                    try {
-                        map.setLayoutProperty(config.id + '-fill', 'visibility', 'none');
-                        map.setLayoutProperty(config.id + '-border', 'visibility', 'none');
-                        map.setLayoutProperty(config.id + '-labels', 'visibility', 'none');
-                    } catch (error) {
-                        console.error(`Error hiding layers for ${layerLevel}:`, error);
-                    }
+                    map.setLayoutProperty(config.id + '-fill', 'visibility', 'none');
+                    map.setLayoutProperty(config.id + '-border', 'visibility', 'none');
+                    map.setLayoutProperty(config.id + '-labels', 'visibility', 'none');
                 }
             });
             
-            // Then show only the selected level
+            // Show selected level
             const config = layerConfig[level];
             if (map.getLayer(config.id + '-fill')) {
-                try {
-                    map.setLayoutProperty(config.id + '-fill', 'visibility', 'visible');
-                    map.setLayoutProperty(config.id + '-border', 'visibility', 'visible');
-                    
-                    // Show labels only if checkbox is checked
-                    const showLabels = document.getElementById('showLabels')?.checked || false;
-                    const labelVisibility = showLabels ? 'visible' : 'none';
-                    map.setLayoutProperty(config.id + '-labels', 'visibility', labelVisibility);
-                    
-                    console.log(`Switched to ${level} - Labels: ${labelVisibility}`);
-                } catch (error) {
-                    console.error(`Error showing layers for ${level}:`, error);
-                }
+                map.setLayoutProperty(config.id + '-fill', 'visibility', 'visible');
+                map.setLayoutProperty(config.id + '-border', 'visibility', 'visible');
+                
+                const showLabels = document.getElementById('showLabels').checked;
+                map.setLayoutProperty(config.id + '-labels', 'visibility', showLabels ? 'visible' : 'none');
             }
             
             showToast(`${config.name} 레벨로 전환되었습니다`, 'success');
@@ -1171,45 +790,28 @@
         function toggleRegionSelection(feature, level) {
             const regionId = feature.properties.NF_ID || feature.id || Math.random().toString();
             
-            // Get the correct name field based on level
             let regionName;
             switch(level) {
-                case 'sido':
-                    regionName = feature.properties.SIDO_NM || 'Unknown';
-                    break;
-                case 'sigungu':
-                    regionName = feature.properties.SIGUNGU_NM || 'Unknown';
-                    break;
-                case 'emd':
-                    regionName = feature.properties.ADM_NM || 'Unknown';
-                    break;
-                default:
-                    regionName = 'Unknown';
+                case 'sido': regionName = feature.properties.SIDO_NM || 'Unknown'; break;
+                case 'sigungu': regionName = feature.properties.SIGUNGU_NM || 'Unknown'; break;
+                case 'emd': regionName = feature.properties.ADM_NM || 'Unknown'; break;
+                default: regionName = 'Unknown';
             }
             
             const existingIndex = selectedRegions.findIndex(r => r.id === regionId && r.level === level);
             
             if (existingIndex > -1) {
-                // Deselect
                 selectedRegions.splice(existingIndex, 1);
-                
-                // Try feature-state approach first (only if feature has id)
-                if (feature.id !== undefined && feature.id !== null) {
+                if (feature.id !== undefined) {
                     try {
                         map.setFeatureState(
                             { source: `korea-${level}-source`, id: feature.id },
                             { selected: false }
                         );
-                    } catch (error) {
-                        console.debug('Feature-state deselection failed:', error);
-                    }
+                    } catch (e) {}
                 }
-                
-                // Always update layer colors as fallback
-                updateLayerColors();
                 showToast(`${regionName} 선택 해제됨`, 'success');
             } else {
-                // Select
                 const selectedColor = document.getElementById('regionColor').value;
                 selectedRegions.push({
                     id: regionId,
@@ -1219,143 +821,90 @@
                     color: selectedColor
                 });
                 
-                // Try feature-state approach first (only if feature has id)
-                if (feature.id !== undefined && feature.id !== null) {
+                if (feature.id !== undefined) {
                     try {
                         map.setFeatureState(
                             { source: `korea-${level}-source`, id: feature.id },
                             { selected: true }
                         );
-                    } catch (error) {
-                        console.debug('Feature-state selection failed:', error);
-                    }
+                    } catch (e) {}
                 }
-                
-                // Always update layer colors as fallback
-                updateLayerColors();
                 showToast(`${regionName} 선택됨`, 'success');
             }
             
+            updateLayerColors();
             updateSelectedRegionsInfo();
         }
 
-        // Update layer colors based on selections
+        // Select color
+        function selectColor(color, item) {
+            document.getElementById('regionColor').value = color;
+            document.querySelectorAll('.color-item').forEach(el => el.classList.remove('selected'));
+            item.classList.add('selected');
+            updateSelectedRegionColors();
+        }
+
+        // Update functions
+        function updateMapColors() {
+            showToast('지도 색상 기능은 스타일에 따라 달라집니다', 'info');
+        }
+
+        function updateBorderColor() {
+            const color = document.getElementById('borderColor').value;
+            Object.keys(layerConfig).forEach(level => {
+                const layerId = layerConfig[level].id + '-border';
+                if (map.getLayer(layerId)) {
+                    map.setPaintProperty(layerId, 'line-color', color);
+                }
+            });
+        }
+
+        function updateSelectedRegionColors() {
+            const color = document.getElementById('regionColor').value;
+            selectedRegions.forEach(region => {
+                region.color = color;
+            });
+            updateLayerColors();
+            updateSelectedRegionsInfo();
+        }
+
         function updateLayerColors() {
+            const selectedColor = document.getElementById('regionColor').value;
             Object.keys(layerConfig).forEach(level => {
                 const layerId = layerConfig[level].id + '-fill';
                 if (map.getLayer(layerId)) {
                     try {
-                        // Get the current selected color
-                        const selectedColor = document.getElementById('regionColor')?.value || '#7faef5';
-                        
-                        // Try to update the fill-color expression first
                         map.setPaintProperty(layerId, 'fill-color', [
                             'case',
                             ['boolean', ['feature-state', 'selected'], false],
                             selectedColor,
                             '#8896a1'
                         ]);
-                        console.log(`Updated colors for ${level} using feature-state`);
-                    } catch (error) {
-                        console.warn(`Feature-state color update failed for ${level}, trying fallback:`, error);
-                        // Fallback: try data-driven approach
-                        updateLayerColorsDataDriven(level);
-                    }
-                } else {
-                    console.warn(`Layer ${layerId} not found`);
+                    } catch (e) {}
                 }
             });
-            
-            // Force repaint to ensure colors are applied
-            setTimeout(() => {
-                if (map && map.triggerRepaint) {
-                    map.triggerRepaint();
-                }
-            }, 100);
         }
 
-        // Fallback method using data-driven styling
-        function updateLayerColorsDataDriven(level) {
-            try {
-                const selectedColor = document.getElementById('regionColor')?.value || '#7faef5';
-                const source = map.getSource(`korea-${level}-source`);
-                
-                if (source && source._data) {
-                    // Create a new data object to avoid mutating the original
-                    const data = JSON.parse(JSON.stringify(source._data));
-                    
-                    // Update each feature's properties
-                    data.features.forEach(feature => {
-                        const featureId = feature.properties.NF_ID || feature.id;
-                        const isSelected = selectedRegions.some(r => 
-                            r.level === level && 
-                            (r.id === featureId)
-                        );
-                        
-                        // Add selection properties to feature
-                        feature.properties.selected = isSelected;
-                        feature.properties.selectedColor = isSelected ? selectedColor : '#8896a1';
-                    });
-                    
-                    // Update the source with new data
-                    source.setData(data);
-                    
-                    // Update the layer paint property to use the feature properties
-                    const layerId = layerConfig[level].id + '-fill';
-                    if (map.getLayer(layerId)) {
-                        map.setPaintProperty(layerId, 'fill-color', [
-                            'get', 'selectedColor'
-                        ]);
-                        console.log(`Data-driven color update applied to ${level}`);
-                    }
-                } else {
-                    console.warn(`Source data not available for ${level}`);
+        function updateLabelVisibility() {
+            const show = document.getElementById('showLabels').checked;
+            Object.keys(layerConfig).forEach(level => {
+                const layerId = layerConfig[level].id + '-labels';
+                if (map.getLayer(layerId)) {
+                    const shouldShow = (show && level === currentAdminLevel) ? 'visible' : 'none';
+                    map.setLayoutProperty(layerId, 'visibility', shouldShow);
                 }
-            } catch (error) {
-                console.error(`Data-driven color update failed for ${level}:`, error);
-                
-                // Ultimate fallback: use simple filter approach
-                try {
-                    const layerId = layerConfig[level].id + '-fill';
-                    const selectedColor = document.getElementById('regionColor')?.value || '#7faef5';
-                    
-                    if (map.getLayer(layerId)) {
-                        // Create a very simple color expression
-                        map.setPaintProperty(layerId, 'fill-color', selectedColor);
-                        console.log(`Simple fallback color applied to ${level}`);
-                    }
-                } catch (finalError) {
-                    console.error(`Final fallback failed for ${level}:`, finalError);
-                }
-            }
-        }
-
-        // Select color from palette
-        function selectColor(color, colorItem) {
-            document.getElementById('regionColor').value = color;
-            
-            // Update visual selection
-            document.querySelectorAll('.color-item').forEach(item => {
-                item.classList.remove('selected');
             });
-            colorItem.classList.add('selected');
-            
-            updateSelectedRegionColors();
         }
 
-        // Clear all region selections
         function clearRegionSelection() {
             selectedRegions.forEach(region => {
-                const layerId = layerConfig[region.level].id + '-fill';
-                if (map.getLayer(layerId) && region.feature.id !== undefined) {
+                if (region.feature.id !== undefined) {
                     try {
                         map.setFeatureState(
                             { source: `korea-${region.level}-source`, id: region.feature.id },
                             { selected: false }
                         );
-                    } catch (error) {
-                        console.error('Error clearing selection:', error);
-                    }
+                    } catch (e) {}
                 }
             });
             
@@ -1365,266 +914,84 @@
             showToast('모든 선택이 해제되었습니다', 'success');
         }
 
-        // Update country border style
-        function updateCountryBorderStyle() {
-            const width = parseInt(document.getElementById('countryBorderWidth')?.value || 3);
-            const isDashed = document.getElementById('countryBorderDashed')?.checked || false;
-            
-            if (map.getLayer('korea-country-border')) {
-                try {
-                    map.setPaintProperty('korea-country-border', 'line-width', width);
-                    map.setPaintProperty('korea-country-border', 'line-dasharray', 
-                        isDashed ? [2, 2] : [1, 0]);
-                } catch (error) {
-                    console.error('Error updating country border style:', error);
-                }
-            }
-        }
-
-        // Update admin border style  
-        function updateAdminBorderStyle() {
-            const width = parseInt(document.getElementById('adminBorderWidth')?.value || 2);
-            const isDashed = document.getElementById('adminBorderDashed')?.checked || false;
-            
-            Object.keys(layerConfig).forEach(level => {
-                const layerId = layerConfig[level].id + '-border';
-                if (map.getLayer(layerId)) {
-                    try {
-                        map.setPaintProperty(layerId, 'line-width', width);
-                        map.setPaintProperty(layerId, 'line-dasharray', 
-                            isDashed ? [2, 2] : [1, 0]);
-                    } catch (error) {
-                        console.error(`Error updating ${level} border style:`, error);
-                    }
-                }
-            });
-        }
-
-        // Update map colors (ocean and land)
-        function updateMapColors() {
-            try {
-                const oceanColor = document.getElementById('oceanColor')?.value || '#0f3564';
-                const landColor = document.getElementById('landColor')?.value || '#8896a1';
-                
-                console.log('Updating map colors - Ocean:', oceanColor, 'Land:', landColor);
-                
-                // Get current map style layers
-                const style = map.getStyle();
-                
-                // Try to find and update common layer types for ocean and land
-                // These are common layer names that might exist in custom styles
-                const oceanLayers = ['water', 'ocean', 'sea', 'background'];
-                const landLayers = ['land', 'landcover', 'landuse', 'background'];
-                
-                style.layers.forEach(layer => {
-                    try {
-                        const layerId = layer.id.toLowerCase();
-                        
-                        // Check for ocean/water layers
-                        if (oceanLayers.some(name => layerId.includes(name)) && layer.type === 'fill') {
-                            if (map.getLayer(layer.id)) {
-                                map.setPaintProperty(layer.id, 'fill-color', oceanColor);
-                                console.log(`Updated ocean layer: ${layer.id}`);
-                            }
-                        }
-                        
-                        // Check for land layers
-                        if (landLayers.some(name => layerId.includes(name)) && layer.type === 'fill') {
-                            if (map.getLayer(layer.id)) {
-                                map.setPaintProperty(layer.id, 'fill-color', landColor);
-                                console.log(`Updated land layer: ${layer.id}`);
-                            }
-                        }
-                        
-                        // Special case for background layer
-                        if (layer.type === 'background') {
-                            if (map.getLayer(layer.id)) {
-                                map.setPaintProperty(layer.id, 'background-color', landColor);
-                                console.log(`Updated background layer: ${layer.id}`);
-                            }
-                        }
-                        
-                    } catch (error) {
-                        console.warn(`Could not update layer ${layer.id}:`, error);
-                    }
+        function updateSelectedRegionsInfo() {
+            const info = document.getElementById('selectedInfo');
+            if (selectedRegions.length === 0) {
+                info.innerHTML = '<h4>선택된 구역</h4><p>선택된 구역이 없습니다</p>';
+            } else {
+                let html = `<h4>선택된 구역 (${selectedRegions.length}개)</h4><div class="selected-list">`;
+                selectedRegions.forEach(region => {
+                    html += `<div style="color: ${region.color};">• ${region.name}</div>`;
                 });
-                
-                showToast('지도 색상이 업데이트되었습니다', 'success');
-                
-            } catch (error) {
-                console.error('Error updating map colors:', error);
-                showToast('지도 색상 업데이트 중 오류가 발생했습니다', 'error');
-            }
-        }
-            const color = document.getElementById('borderColor')?.value || '#ffffff';
-            
-            // Update country border
-            if (map.getLayer('korea-country-border')) {
-                try {
-                    map.setPaintProperty('korea-country-border', 'line-color', color);
-                } catch (error) {
-                    console.error('Error updating country border color:', error);
-                }
-            }
-            
-            // Update all admin border layers
-            Object.keys(layerConfig).forEach(level => {
-                const layerId = layerConfig[level].id + '-border';
-                if (map.getLayer(layerId)) {
-                    try {
-                        map.setPaintProperty(layerId, 'line-color', color);
-                    } catch (error) {
-                        console.error(`Error updating ${level} border color:`, error);
-                    }
-                }
-            });
-        }
-
-        // Update selected region colors
-        function updateSelectedRegionColors() {
-            const newColor = document.getElementById('regionColor')?.value || '#7faef5';
-            
-            selectedRegions.forEach(region => {
-                region.color = newColor;
-                const layerId = layerConfig[region.level].id + '-fill';
-                if (map.getLayer(layerId) && region.feature.id !== undefined) {
-                    try {
-                        map.setFeatureState(
-                            { source: `korea-${region.level}-source`, id: region.feature.id },
-                            { selected: true, selectedColor: newColor }
-                        );
-                    } catch (error) {
-                        console.error('Error updating selected region color:', error);
-                    }
-                }
-            });
-
-            updateSelectedRegionsInfo();
-        }
-
-        // Update label visibility
-        function updateLabelVisibility() {
-            const show = document.getElementById('showLabels')?.checked || false;
-            
-            // First hide ALL labels from all levels
-            Object.keys(layerConfig).forEach(level => {
-                const layerId = layerConfig[level].id + '-labels';
-                if (map.getLayer(layerId)) {
-                    try {
-                        map.setLayoutProperty(layerId, 'visibility', 'none');
-                    } catch (error) {
-                        console.error(`Error hiding ${level} labels:`, error);
-                    }
-                }
-            });
-            
-            // Then show only the current level's labels if checkbox is checked
-            if (show) {
-                const currentLayerId = layerConfig[currentAdminLevel].id + '-labels';
-                if (map.getLayer(currentLayerId)) {
-                    try {
-                        map.setLayoutProperty(currentLayerId, 'visibility', 'visible');
-                        console.log(`Showing labels for ${currentAdminLevel} only`);
-                    } catch (error) {
-                        console.error(`Error showing ${currentAdminLevel} labels:`, error);
-                    }
-                }
+                html += '</div>';
+                info.innerHTML = html;
             }
         }
 
-        // Toggle route drawing
+        // Route functions
         function toggleRouteDrawing() {
             isDrawingRoute = !isDrawingRoute;
             const button = document.getElementById('toggleRoute');
             
-            if (button) {
-                if (isDrawingRoute) {
-                    button.textContent = '경로 그리기 완료';
-                    button.classList.add('active');
-                    map.getCanvas().style.cursor = 'crosshair';
-                    showToast('지도를 클릭하여 경로를 그리세요. 완료하려면 다시 버튼을 클릭하세요.', 'info');
-                } else {
-                    button.textContent = '경로 그리기';
-                    button.classList.remove('active');
-                    map.getCanvas().style.cursor = '';
-                    
-                    if (routePoints.length > 0) {
-                        showToast(`${routePoints.length}개 포인트로 경로가 완료되었습니다`, 'success');
-                    } else {
-                        showToast('경로 그리기가 취소되었습니다', 'info');
-                    }
-                }
+            if (isDrawingRoute) {
+                button.textContent = '경로 그리기 완료';
+                button.classList.add('active');
+                map.getCanvas().style.cursor = 'crosshair';
+                showToast('지도를 클릭하여 경로를 그리세요', 'info');
+            } else {
+                button.textContent = '경로 그리기';
+                button.classList.remove('active');
+                map.getCanvas().style.cursor = '';
+                showToast('경로 그리기가 완료되었습니다', 'success');
             }
         }
 
-        // Add point to route
         function addRoutePoint(lngLat) {
             routePoints.push([lngLat.lng, lngLat.lat]);
             
-            // Add marker for route point
-            const marker = new mapboxgl.Marker({ 
-                color: '#ff0000',
-                draggable: false 
-            })
+            const marker = new mapboxgl.Marker({ color: '#ff0000' })
                 .setLngLat([lngLat.lng, lngLat.lat])
                 .addTo(map);
             
-            // Store marker for potential cleanup
-            if (!window.routeMarkers) {
-                window.routeMarkers = [];
-            }
+            if (!window.routeMarkers) window.routeMarkers = [];
             window.routeMarkers.push(marker);
             
-            // Draw route line if we have multiple points
             if (routePoints.length > 1) {
                 updateRouteLine();
             }
             
-            showToast(`경로 포인트 ${routePoints.length} 추가됨 (${lngLat.lng.toFixed(4)}, ${lngLat.lat.toFixed(4)})`, 'success');
+            showToast(`경로 포인트 ${routePoints.length} 추가됨`, 'success');
         }
 
-        // Update route line on map
         function updateRouteLine() {
-            try {
-                const routeData = {
-                    type: 'Feature',
-                    geometry: {
-                        type: 'LineString',
-                        coordinates: routePoints
-                    },
-                    properties: {}
-                };
-                
-                if (map.getSource('route')) {
-                    map.getSource('route').setData(routeData);
-                } else {
-                    map.addSource('route', { 
-                        type: 'geojson', 
-                        data: routeData 
-                    });
-                    
-                    map.addLayer({
-                        id: 'route-line',
-                        type: 'line',
-                        source: 'route',
-                        paint: {
-                            'line-color': '#ff0000',
-                            'line-width': 4,
-                            'line-opacity': 0.8
-                        }
-                    });
+            const routeData = {
+                type: 'Feature',
+                geometry: {
+                    type: 'LineString',
+                    coordinates: routePoints
                 }
-            } catch (error) {
-                console.error('Error updating route line:', error);
+            };
+            
+            if (map.getSource('route')) {
+                map.getSource('route').setData(routeData);
+            } else {
+                map.addSource('route', { type: 'geojson', data: routeData });
+                map.addLayer({
+                    id: 'route-line',
+                    type: 'line',
+                    source: 'route',
+                    paint: {
+                        'line-color': '#ff0000',
+                        'line-width': 4,
+                        'line-opacity': 0.8
+                    }
+                });
             }
         }
 
-        // Clear route
         function clearRoute() {
-            // Clear route points
             routePoints = [];
             
-            // Remove route line
             if (map.getLayer('route-line')) {
                 map.removeLayer('route-line');
             }
@@ -1632,268 +999,58 @@
                 map.removeSource('route');
             }
             
-            // Remove markers
             if (window.routeMarkers) {
                 window.routeMarkers.forEach(marker => marker.remove());
                 window.routeMarkers = [];
             }
             
-            // Reset button state
             isDrawingRoute = false;
             const button = document.getElementById('toggleRoute');
-            if (button) {
-                button.textContent = '경로 그리기';
-                button.classList.remove('active');
-                map.getCanvas().style.cursor = '';
-            }
+            button.textContent = '경로 그리기';
+            button.classList.remove('active');
+            map.getCanvas().style.cursor = '';
             
             showToast('경로가 지워졌습니다', 'success');
         }
 
-        // Export map as PNG
+        // Export functions
         function exportMapAsPNG() {
             try {
-                showToast('지도 이미지를 생성하는 중...', 'info');
-                
-                // 맵이 완전히 렌더링된 후 캡처하기 위해 잠시 대기
                 map.once('idle', () => {
                     setTimeout(() => {
-                        try {
-                            const canvas = map.getCanvas();
-                            const link = document.createElement('a');
-                            link.download = `korea-map-${Date.now()}.png`;
-                            link.href = canvas.toDataURL('image/png', 1.0);
-                            
-                            // 링크가 제대로 생성되었는지 확인
-                            if (link.href.startsWith('data:image/png')) {
-                                link.click();
-                                showToast('지도가 PNG로 저장되었습니다', 'success');
-                            } else {
-                                throw new Error('Canvas data URL generation failed');
-                            }
-                        } catch (error) {
-                            console.error('PNG export error:', error);
-                            showError('PNG 내보내기 중 오류가 발생했습니다: ' + error.message);
-                        }
-                    }, 500); // 500ms 추가 대기
+                        const canvas = map.getCanvas();
+                        const link = document.createElement('a');
+                        link.download = `korea-map-${Date.now()}.png`;
+                        link.href = canvas.toDataURL('image/png', 1.0);
+                        link.click();
+                        showToast('지도가 PNG로 저장되었습니다', 'success');
+                    }, 500);
                 });
-                
-                // 맵 다시 렌더링 트리거
                 map.triggerRepaint();
-                
             } catch (error) {
-                console.error('PNG export error:', error);
                 showError('PNG 내보내기 중 오류가 발생했습니다');
             }
         }
 
-        // Export selected regions as SVG
         function exportSelectedRegionsAsSVG() {
             if (selectedRegions.length === 0) {
                 showToast('선택된 구역이 없습니다', 'info');
                 return;
             }
-            
-            try {
-                showToast('SVG 파일을 생성하는 중...', 'info');
-                
-                // 현재 지도 캔버스의 실제 크기 가져오기 (PNG와 동일하게)
-                const canvas = map.getCanvas();
-                const width = canvas.width;
-                const height = canvas.height;
-                
-                console.log(`Using canvas dimensions: ${width}x${height}`);
-                
-                const bounds = map.getBounds();
-                
-                let svgContent = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}">`;
-                
-                // 배경색 추가 (PNG와 동일한 배경)
-                const landColor = document.getElementById('landColor')?.value || '#8896a1';
-                svgContent += `<rect width="${width}" height="${height}" fill="${landColor}"/>`;
-                
-                // 선택된 각 구역을 SVG로 변환
-                selectedRegions.forEach((region, index) => {
-                    try {
-                        const feature = region.feature;
-                        if (feature && feature.geometry && feature.geometry.coordinates) {
-                            const coords = feature.geometry.coordinates;
-                            
-                            if (feature.geometry.type === 'Polygon') {
-                                coords.forEach(ring => {
-                                    let pathData = 'M';
-                                    ring.forEach((coord, coordIndex) => {
-                                        // 좌표를 SVG 좌표계로 변환 (캔버스 크기 사용)
-                                        const x = ((coord[0] - bounds.getWest()) / (bounds.getEast() - bounds.getWest())) * width;
-                                        const y = ((bounds.getNorth() - coord[1]) / (bounds.getNorth() - bounds.getSouth())) * height;
-                                        pathData += coordIndex === 0 ? `${x.toFixed(2)},${y.toFixed(2)}` : ` L${x.toFixed(2)},${y.toFixed(2)}`;
-                                    });
-                                    pathData += ' Z';
-                                    
-                                    svgContent += `<path d="${pathData}" fill="${region.color}" stroke="#ffffff" stroke-width="1" opacity="0.8"/>`;
-                                });
-                            } else if (feature.geometry.type === 'MultiPolygon') {
-                                coords.forEach(polygon => {
-                                    polygon.forEach(ring => {
-                                        let pathData = 'M';
-                                        ring.forEach((coord, coordIndex) => {
-                                            const x = ((coord[0] - bounds.getWest()) / (bounds.getEast() - bounds.getWest())) * width;
-                                            const y = ((bounds.getNorth() - coord[1]) / (bounds.getNorth() - bounds.getSouth())) * height;
-                                            pathData += coordIndex === 0 ? `${x.toFixed(2)},${y.toFixed(2)}` : ` L${x.toFixed(2)},${y.toFixed(2)}`;
-                                        });
-                                        pathData += ' Z';
-                                        
-                                        svgContent += `<path d="${pathData}" fill="${region.color}" stroke="#ffffff" stroke-width="1" opacity="0.8"/>`;
-                                    });
-                                });
-                            }
-                            
-                            // 지역명 텍스트 추가 (중심점 추정)
-                            if (feature.geometry.coordinates && feature.geometry.coordinates[0]) {
-                                let centerLng = 0, centerLat = 0, pointCount = 0;
-                                const firstRing = feature.geometry.type === 'Polygon' ? 
-                                    feature.geometry.coordinates[0] : 
-                                    feature.geometry.coordinates[0][0];
-                                    
-                                firstRing.forEach(coord => {
-                                    centerLng += coord[0];
-                                    centerLat += coord[1];
-                                    pointCount++;
-                                });
-                                
-                                centerLng /= pointCount;
-                                centerLat /= pointCount;
-                                
-                                const textX = ((centerLng - bounds.getWest()) / (bounds.getEast() - bounds.getWest())) * width;
-                                const textY = ((bounds.getNorth() - centerLat) / (bounds.getNorth() - bounds.getSouth())) * height;
-                                
-                                svgContent += `<text x="${textX.toFixed(2)}" y="${textY.toFixed(2)}" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#333" stroke="#fff" stroke-width="3" paint-order="stroke">${region.name}</text>`;
-                            }
-                        }
-                    } catch (error) {
-                        console.error(`Error processing region ${region.name}:`, error);
-                    }
-                });
-                
-                svgContent += '</svg>';
-                
-                // SVG 파일 다운로드
-                const blob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `selected-regions-${width}x${height}-${Date.now()}.svg`;
-                link.click();
-                URL.revokeObjectURL(link.href);
-                
-                showToast(`선택된 ${selectedRegions.length}개 구역이 SVG로 저장되었습니다 (${width}x${height})`, 'success');
-                
-            } catch (error) {
-                console.error('SVG export error:', error);
-                showError('SVG 내보내기 중 오류가 발생했습니다: ' + error.message);
-            }
+            showToast('SVG 내보내기 기능은 개발 중입니다', 'info');
         }
 
-        // Export route as SVG
         function exportRouteAsSVG() {
             if (routePoints.length < 2) {
-                showToast('경로가 설정되지 않았습니다. 최소 2개의 포인트가 필요합니다.', 'info');
+                showToast('경로가 설정되지 않았습니다', 'info');
                 return;
             }
-            
-            try {
-                showToast('경로 SVG 파일을 생성하는 중...', 'info');
-                
-                // 현재 지도 캔버스의 실제 크기 가져오기 (PNG와 동일하게)
-                const canvas = map.getCanvas();
-                const width = canvas.width;
-                const height = canvas.height;
-                
-                const bounds = map.getBounds();
-                
-                // SVG 헤더 (PNG와 동일한 크기)
-                let svgContent = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}">`;
-                
-                // 배경색 (지도와 동일)
-                const landColor = document.getElementById('landColor')?.value || '#8896a1';
-                svgContent += `<rect width="${width}" height="${height}" fill="${landColor}"/>`;
-                
-                // 경로 선 그리기
-                if (routePoints.length > 1) {
-                    let pathData = 'M';
-                    routePoints.forEach((point, index) => {
-                        const x = ((point[0] - bounds.getWest()) / (bounds.getEast() - bounds.getWest())) * width;
-                        const y = ((bounds.getNorth() - point[1]) / (bounds.getNorth() - bounds.getSouth())) * height;
-                        pathData += index === 0 ? `${x.toFixed(2)},${y.toFixed(2)}` : ` L${x.toFixed(2)},${y.toFixed(2)}`;
-                    });
-                    
-                    svgContent += `<path d="${pathData}" fill="none" stroke="#ff0000" stroke-width="4" stroke-opacity="0.8"/>`;
-                }
-                
-                // 경로 포인트 마커 그리기
-                routePoints.forEach((point, index) => {
-                    const x = ((point[0] - bounds.getWest()) / (bounds.getEast() - bounds.getWest())) * width;
-                    const y = ((bounds.getNorth() - point[1]) / (bounds.getNorth() - bounds.getSouth())) * height;
-                    
-                    // 마커 원
-                    svgContent += `<circle cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="6" fill="#ff0000" stroke="#ffffff" stroke-width="2"/>`;
-                    
-                    // 포인트 번호
-                    svgContent += `<text x="${x.toFixed(2)}" y="${(y + 1).toFixed(2)}" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="white">${index + 1}</text>`;
-                });
-                
-                // 시작점과 끝점 표시
-                if (routePoints.length >= 2) {
-                    // 시작점
-                    const startX = ((routePoints[0][0] - bounds.getWest()) / (bounds.getEast() - bounds.getWest())) * width;
-                    const startY = ((bounds.getNorth() - routePoints[0][1]) / (bounds.getNorth() - bounds.getSouth())) * height;
-                    svgContent += `<text x="${startX.toFixed(2)}" y="${(startY - 15).toFixed(2)}" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#00aa00" stroke="#ffffff" stroke-width="2" paint-order="stroke">시작</text>`;
-                    
-                    // 끝점
-                    const endIndex = routePoints.length - 1;
-                    const endX = ((routePoints[endIndex][0] - bounds.getWest()) / (bounds.getEast() - bounds.getWest())) * width;
-                    const endY = ((bounds.getNorth() - routePoints[endIndex][1]) / (bounds.getNorth() - bounds.getSouth())) * height;
-                    svgContent += `<text x="${endX.toFixed(2)}" y="${(endY - 15).toFixed(2)}" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#aa0000" stroke="#ffffff" stroke-width="2" paint-order="stroke">끝</text>`;
-                }
-                
-                svgContent += '</svg>';
-                
-                // SVG 파일 다운로드
-                const blob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `route-${routePoints.length}points-${width}x${height}-${Date.now()}.svg`;
-                link.click();
-                URL.revokeObjectURL(link.href);
-                
-                showToast(`${routePoints.length}개 포인트의 경로가 SVG로 저장되었습니다 (${width}x${height})`, 'success');
-                
-            } catch (error) {
-                console.error('Route SVG export error:', error);
-                showError('경로 SVG 내보내기 중 오류가 발생했습니다: ' + error.message);
-            }
-        }
-
-        // Update selected regions info display
-        function updateSelectedRegionsInfo() {
-            const infoDiv = document.getElementById('selectedInfo');
-            if (!infoDiv) return;
-            
-            if (selectedRegions.length === 0) {
-                infoDiv.innerHTML = '<h4>선택된 구역</h4><p>선택된 구역이 없습니다</p>';
-            } else {
-                let html = `<h4>선택된 구역 (${selectedRegions.length}개)</h4><div class="selected-list">`;
-                selectedRegions.forEach(region => {
-                    html += `<div style="color: ${region.color};">• ${region.name} (${layerConfig[region.level].name})</div>`;
-                });
-                html += '</div>';
-                infoDiv.innerHTML = html;
-            }
+            showToast('경로 SVG 내보내기 기능은 개발 중입니다', 'info');
         }
 
         // Utility functions
         function showLoading(show) {
             let loader = document.getElementById('loadingIndicator');
-            
             if (show) {
                 if (!loader) {
                     loader = document.createElement('div');
@@ -1918,16 +1075,13 @@
                 }
                 loader.style.display = 'block';
             } else {
-                if (loader) {
-                    loader.style.display = 'none';
-                }
+                if (loader) loader.style.display = 'none';
             }
         }
 
         function showToast(message, type = 'info') {
             console.log(`${type.toUpperCase()}: ${message}`);
             
-            // Create toast element
             const toast = document.createElement('div');
             toast.style.cssText = `
                 position: fixed; bottom: 20px; right: 20px; 
@@ -1936,7 +1090,6 @@
                 transform: translateX(100%); transition: transform 0.3s ease;
             `;
             
-            // Set background color based on type
             switch(type) {
                 case 'success': toast.style.backgroundColor = '#28a745'; break;
                 case 'error': toast.style.backgroundColor = '#dc3545'; break;
@@ -1947,16 +1100,11 @@
             toast.textContent = message;
             document.body.appendChild(toast);
             
-            // Animate in
             setTimeout(() => toast.style.transform = 'translateX(0)', 100);
-            
-            // Remove after delay
             setTimeout(() => {
                 toast.style.transform = 'translateX(100%)';
                 setTimeout(() => {
-                    if (toast.parentNode) {
-                        document.body.removeChild(toast);
-                    }
+                    if (toast.parentNode) document.body.removeChild(toast);
                 }, 300);
             }, 3000);
         }
