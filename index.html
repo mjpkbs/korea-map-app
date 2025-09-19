@@ -652,6 +652,18 @@
                 addGeoJsonLayers();
                 setupMapInteractions();
                 
+                // Store the data globally
+                window.koreaData = {
+                    sido: sidoData,
+                    sigungu: sigunguData,
+                    emd: emdData
+                };
+                
+                // Add sources and layers
+                addGeoJsonSources();
+                addGeoJsonLayers();
+                setupMapInteractions();
+                
                 // Ensure proper initial state
                 setTimeout(() => {
                     // Make sure we start with sido level and correct label visibility
