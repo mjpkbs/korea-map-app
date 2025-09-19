@@ -652,6 +652,12 @@
                 addGeoJsonLayers();
                 setupMapInteractions();
                 
+                // Ensure proper initial state
+                setTimeout(() => {
+                    // Make sure we start with sido level and correct label visibility
+                    switchAdminLevel('sido');
+                }, 300);
+                
                 showToast(`한국 행정구역 데이터 로드 완료 (시도: ${sidoData.features.length}, 시군구: ${sigunguData.features.length}, 읍면동: ${emdData.features.length})`, 'success');
                 
             } catch (error) {
@@ -774,7 +780,7 @@
                     console.error(`Error adding label layer for ${level}:`, error);
                 }
 
-                // Initially hide all layers except sido
+                // Initially hide all layers except sido, and hide ALL labels initially
                 if (level !== 'sido') {
                     try {
                         if (map.getLayer(config.id + '-fill')) {
@@ -788,6 +794,15 @@
                         }
                     } catch (error) {
                         console.error(`Error setting visibility for ${level}:`, error);
+                    }
+                } else {
+                    // Even for sido, initially hide labels - they will be shown by setupColorExpressions
+                    try {
+                        if (map.getLayer(config.id + '-labels')) {
+                            map.setLayoutProperty(config.id + '-labels', 'visibility', 'none');
+                        }
+                    } catch (error) {
+                        console.error(`Error hiding sido labels initially:`, error);
                     }
                 }
             });
@@ -819,6 +834,20 @@
 
         // Setup color expressions after layers are created
         function setupColorExpressions() {
+            // First, hide ALL labels from all levels
+            Object.keys(layerConfig).forEach(level => {
+                const labelLayerId = layerConfig[level].id + '-labels';
+                if (map.getLayer(labelLayerId)) {
+                    try {
+                        map.setLayoutProperty(labelLayerId, 'visibility', 'none');
+                        console.log(`Initially hiding all labels for ${level}`);
+                    } catch (error) {
+                        console.error(`Error hiding labels for ${level}:`, error);
+                    }
+                }
+            });
+
+            // Then set up colors and show only current level labels
             Object.keys(layerConfig).forEach(level => {
                 const layerId = layerConfig[level].id + '-fill';
                 if (map.getLayer(layerId)) {
@@ -836,20 +865,12 @@
                         setupDataDrivenColors(level);
                     }
                 }
-
-                // 라벨 가시성 확실히 설정 (현재 레벨만 표시)
-                const labelLayerId = layerConfig[level].id + '-labels';
-                if (map.getLayer(labelLayerId)) {
-                    try {
-                        const showLabels = document.getElementById('showLabels')?.checked !== false;
-                        const shouldShow = (level === currentAdminLevel && showLabels) ? 'visible' : 'none';
-                        map.setLayoutProperty(labelLayerId, 'visibility', shouldShow);
-                        console.log(`Set label visibility for ${level}: ${shouldShow}`);
-                    } catch (error) {
-                        console.error(`Error setting label visibility for ${level}:`, error);
-                    }
-                }
             });
+
+            // Finally, show labels only for current admin level if checkbox is checked
+            setTimeout(() => {
+                updateLabelVisibility();
+            }, 200);
         }
 
         // Fallback: Data-driven coloring approach
@@ -937,22 +958,26 @@
                                 addGeoJsonLayers();
                                 setupMapInteractions();
                                 
-                                // Re-apply selections and colors
+                                // Re-apply current admin level and selections
                                 setTimeout(() => {
+                                    // First ensure correct level is shown
+                                    switchAdminLevel(currentAdminLevel);
+                                    
+                                    // Then re-apply selections and colors
                                     selectedRegions.forEach(region => {
-                                        if (region.feature.id !== undefined) {
+                                        if (region.feature.id !== undefined && region.feature.id !== null) {
                                             try {
                                                 map.setFeatureState(
                                                     { source: `korea-${region.level}-source`, id: region.feature.id },
                                                     { selected: true }
                                                 );
                                             } catch (error) {
-                                                console.error('Error re-applying selection:', error);
+                                                console.debug('Error re-applying selection:', error);
                                             }
                                         }
                                     });
                                     updateLayerColors();
-                                }, 100);
+                                }, 300);
                                 
                                 showToast('지도 스타일이 변경되었습니다', 'success');
                             } catch (error) {
@@ -1094,27 +1119,40 @@
             });
             document.querySelector(`[data-level="${level}"]`).classList.add('active');
             
-            // Show/hide layers
+            // First, hide ALL layers and labels
             Object.keys(layerConfig).forEach(layerLevel => {
                 const config = layerConfig[layerLevel];
-                const visibility = layerLevel === level ? 'visible' : 'none';
                 
                 if (map.getLayer(config.id + '-fill')) {
                     try {
-                        map.setLayoutProperty(config.id + '-fill', 'visibility', visibility);
-                        map.setLayoutProperty(config.id + '-border', 'visibility', visibility);
-                        
-                        // 라벨은 showLabels 체크박스 상태와 현재 레벨을 모두 고려
-                        const showLabels = document.getElementById('showLabels')?.checked || false;
-                        const labelVisibility = (layerLevel === level && showLabels) ? 'visible' : 'none';
-                        map.setLayoutProperty(config.id + '-labels', 'visibility', labelVisibility);
+                        map.setLayoutProperty(config.id + '-fill', 'visibility', 'none');
+                        map.setLayoutProperty(config.id + '-border', 'visibility', 'none');
+                        map.setLayoutProperty(config.id + '-labels', 'visibility', 'none');
                     } catch (error) {
-                        console.error(`Error switching visibility for ${layerLevel}:`, error);
+                        console.error(`Error hiding layers for ${layerLevel}:`, error);
                     }
                 }
             });
             
-            showToast(`${layerConfig[level].name} 레벨로 전환되었습니다`, 'success');
+            // Then show only the selected level
+            const config = layerConfig[level];
+            if (map.getLayer(config.id + '-fill')) {
+                try {
+                    map.setLayoutProperty(config.id + '-fill', 'visibility', 'visible');
+                    map.setLayoutProperty(config.id + '-border', 'visibility', 'visible');
+                    
+                    // Show labels only if checkbox is checked
+                    const showLabels = document.getElementById('showLabels')?.checked || false;
+                    const labelVisibility = showLabels ? 'visible' : 'none';
+                    map.setLayoutProperty(config.id + '-labels', 'visibility', labelVisibility);
+                    
+                    console.log(`Switched to ${level} - Labels: ${labelVisibility}`);
+                } catch (error) {
+                    console.error(`Error showing layers for ${level}:`, error);
+                }
+            }
+            
+            showToast(`${config.name} 레벨로 전환되었습니다`, 'success');
         }
 
         // Toggle region selection
@@ -1456,18 +1494,30 @@
         function updateLabelVisibility() {
             const show = document.getElementById('showLabels')?.checked || false;
             
+            // First hide ALL labels from all levels
             Object.keys(layerConfig).forEach(level => {
                 const layerId = layerConfig[level].id + '-labels';
                 if (map.getLayer(layerId)) {
                     try {
-                        // 라벨은 showLabels가 체크되어 있고 현재 선택된 레벨일 때만 보임
-                        const shouldShow = (show && level === currentAdminLevel) ? 'visible' : 'none';
-                        map.setLayoutProperty(layerId, 'visibility', shouldShow);
+                        map.setLayoutProperty(layerId, 'visibility', 'none');
                     } catch (error) {
-                        console.error(`Error updating ${level} label visibility:`, error);
+                        console.error(`Error hiding ${level} labels:`, error);
                     }
                 }
             });
+            
+            // Then show only the current level's labels if checkbox is checked
+            if (show) {
+                const currentLayerId = layerConfig[currentAdminLevel].id + '-labels';
+                if (map.getLayer(currentLayerId)) {
+                    try {
+                        map.setLayoutProperty(currentLayerId, 'visibility', 'visible');
+                        console.log(`Showing labels for ${currentAdminLevel} only`);
+                    } catch (error) {
+                        console.error(`Error showing ${currentAdminLevel} labels:`, error);
+                    }
+                }
+            }
         }
 
         // Toggle route drawing
