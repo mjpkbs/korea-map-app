@@ -14,7 +14,7 @@
 <style>
   :root{ --bg:#0b0f14; --panel:#11161d; --muted:#9fb0c3; --border:#1f2a36; --text:#e6eef7; }
   *{box-sizing:border-box}
-  html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Pretendard,Apple SD Gothic Neo,Noto Sans KR,Arial,sans-serif}
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:'Noto Sans KR',system-ui,-apple-system,Segoe UI,Roboto,Pretendard,'Apple SD Gothic Neo',Arial,sans-serif}
   #app{display:grid;grid-template-columns:360px 1fr;height:100%}
   #panel{background:#11161d;border-right:1px solid var(--border);padding:14px;overflow:auto}
   #map{position:relative}
@@ -22,7 +22,7 @@
   h1{font-size:18px;margin:0 0 8px}
   h2{font-size:13px;margin:10px 0;color:var(--muted);font-weight:700;letter-spacing:.4px}
   label{display:block;font-size:13px;margin:8px 0 4px}
-  input[type="text"]{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:10px;background:#0c1218;color:#e6eef7}
+  input[type="text"]{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:10px;background:#0c1218;color:#e6eef7;font-family:'Noto Sans KR',system-ui,-apple-system,sans-serif}
   input[type="color"]{width:100%;height:38px;border:1px solid var(--border);border-radius:10px;background:#0c1218}
   input[type="range"]{width:100%}
   .row{display:grid;grid-template-columns:1fr 110px;gap:10px;align-items:center}
@@ -40,11 +40,11 @@
   /* Selection UI */
   .selector-container{margin-bottom:8px}
   .selector-input{position:relative}
-  .selector-dropdown{position:absolute;top:100%;left:0;right:0;background:#0c1218;border:1px solid var(--border);border-radius:8px;max-height:200px;overflow-y:auto;z-index:20;display:none}
-  .dropdown-item{padding:8px 10px;cursor:pointer;font-size:12px}
+  .selector-dropdown{position:absolute;top:100%;left:0;right:0;background:#0c1218;border:1px solid var(--border);border-radius:8px;max-height:200px;overflow-y:auto;z-index:20;display:none;font-family:'Noto Sans KR',system-ui,-apple-system,sans-serif}
+  .dropdown-item{padding:8px 10px;cursor:pointer;font-size:12px;font-family:'Noto Sans KR',system-ui,-apple-system,sans-serif;color:#e6eef7}
   .dropdown-item:hover{background:#13202c}
   .selected-items{margin-top:8px}
-  .selected-item{background:#13202c;border:1px solid var(--border);border-radius:6px;padding:4px 8px;margin:2px;display:inline-flex;align-items:center;font-size:11px}
+  .selected-item{background:#13202c;border:1px solid var(--border);border-radius:6px;padding:4px 8px;margin:2px;display:inline-flex;align-items:center;font-size:11px;font-family:'Noto Sans KR',system-ui,-apple-system,sans-serif}
   .selected-item .remove{margin-left:6px;color:#ff6b6b;cursor:pointer;font-weight:bold}
   .add-selection{display:flex;gap:6px;align-items:center;margin-top:6px}
 
@@ -52,12 +52,18 @@
   .route-controls{margin-top:8px}
   .route-info{font-size:11px;color:var(--muted);margin-top:4px}
 
+  /* Color sections */
+  .color-section{margin-bottom:8px;padding:8px;background:#111;border-radius:8px}
+
   /* Geocoder */
   .mapboxgl-ctrl-geocoder, .mapboxgl-ctrl-geocoder .suggestions{background:#0c1218 !important; color:#e6eef7 !important;}
   .mapboxgl-ctrl-geocoder input[type='text']{color:#e6eef7 !important;}
   .mapboxgl-ctrl-geocoder .mapboxgl-ctrl-geocoder--input::placeholder{color:#9fb0c3 !important;}
   .mapboxgl-ctrl-geocoder .suggestions > li{color:#e6eef7 !important; background:#0c1218 !important;}
   .mapboxgl-ctrl-geocoder .suggestions > .active{background:#13202c !important;}
+
+  /* Import Korean font */
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
 </style>
 </head>
 <body>
@@ -71,7 +77,7 @@
 
     <div class="section">
       <h2>행정구역 레벨 (타일셋)</h2>
-      <div class="switch"><span>시도</span><input type="checkbox" id="chkSido"></div>
+      <div class="switch"><span>시도</span><input type="checkbox" id="chkSido" checked></div>
       <div class="switch"><span>시군구</span><input type="checkbox" id="chkSigungu"></div>
       <div class="switch"><span>읍면동</span><input type="checkbox" id="chkEmd"></div>
       <div class="muted" style="margin-top:6px">* 켜면 해당 타일셋 레이어 추가, 끄면 제거</div>
@@ -79,6 +85,11 @@
 
     <div class="section">
       <h2>시군구 선택</h2>
+      <div class="color-section">
+        <label>시군구 선택 색</label>
+        <input type="color" id="sigunguSelectColor" value="#ffcc33">
+        <div class="switch" style="margin-top:4px"><span>반투명</span><input type="checkbox" id="sigunguSelectHalf" checked></div>
+      </div>
       <div class="selector-container">
         <div class="selector-input">
           <input type="text" id="sigunguSearch" placeholder="시군구 검색..." />
@@ -90,6 +101,11 @@
 
     <div class="section">
       <h2>읍면동 선택</h2>
+      <div class="color-section">
+        <label>읍면동 선택 색</label>
+        <input type="color" id="emdSelectColor" value="#33ccff">
+        <div class="switch" style="margin-top:4px"><span>반투명</span><input type="checkbox" id="emdSelectHalf" checked></div>
+      </div>
       <div class="selector-container">
         <div class="selector-input">
           <input type="text" id="emdSearch" placeholder="읍면동 검색..." />
@@ -97,6 +113,15 @@
         </div>
         <div class="selected-items" id="selectedEmd"></div>
       </div>
+    </div>
+
+    <div class="section">
+      <h2>선택 영역 관리</h2>
+      <div class="two" style="margin-bottom:8px">
+        <button class="btn" id="clearSelection">모든 선택 해제</button>
+        <button class="btn ghost" id="exportSelection">선택 이름(JSON)</button>
+      </div>
+      <button class="btn" id="exportSelectionSvg">선택 영역 SVG 저장</button>
     </div>
 
     <div class="section">
@@ -118,16 +143,6 @@
     </div>
 
     <div class="section">
-      <h2>선택 영역 색칠</h2>
-      <label>선택 색</label><input type="color" id="selectColor" value="#ffcc33">
-      <div class="switch"><span>반투명</span><input type="checkbox" id="selectHalf" checked></div>
-      <div class="two" style="margin-top:8px">
-        <button class="btn" id="clearSelection">선택 해제</button>
-        <button class="btn ghost" id="exportSelection">선택 이름(JSON)</button>
-      </div>
-    </div>
-
-    <div class="section">
       <h2>경로 그리기</h2>
       <div class="route-controls">
         <div class="two">
@@ -136,7 +151,7 @@
         </div>
         <div class="two" style="margin-top:6px">
           <button class="btn ghost" id="clearRoute">경로 지우기</button>
-          <button class="btn ghost" id="exportSvg">SVG 내보내기</button>
+          <button class="btn ghost" id="exportRouteSvg">경로 SVG 저장</button>
         </div>
         <div class="route-info" id="routeInfo">경로 점 개수: 0</div>
       </div>
@@ -190,31 +205,34 @@
     countryDashed: document.getElementById('countryDashed'),
     adminDashed: document.getElementById('adminDashed'),
     showRivers: document.getElementById('showRivers'),
-    selectColor: document.getElementById('selectColor'),
-    selectHalf: document.getElementById('selectHalf'),
     clearSelection: document.getElementById('clearSelection'),
     exportSelection: document.getElementById('exportSelection'),
+    exportSelectionSvg: document.getElementById('exportSelectionSvg'),
     savePng: document.getElementById('savePng'),
     // 시군구 선택
     sigunguSearch: document.getElementById('sigunguSearch'),
     sigunguDropdown: document.getElementById('sigunguDropdown'),
     selectedSigungu: document.getElementById('selectedSigungu'),
+    sigunguSelectColor: document.getElementById('sigunguSelectColor'),
+    sigunguSelectHalf: document.getElementById('sigunguSelectHalf'),
     // 읍면동 선택
     emdSearch: document.getElementById('emdSearch'),
     emdDropdown: document.getElementById('emdDropdown'),
     selectedEmd: document.getElementById('selectedEmd'),
+    emdSelectColor: document.getElementById('emdSelectColor'),
+    emdSelectHalf: document.getElementById('emdSelectHalf'),
     // 경로 그리기
     startRoute: document.getElementById('startRoute'),
     stopRoute: document.getElementById('stopRoute'),
     clearRoute: document.getElementById('clearRoute'),
-    exportSvg: document.getElementById('exportSvg'),
+    exportRouteSvg: document.getElementById('exportRouteSvg'),
     routeInfo: document.getElementById('routeInfo'),
   };
 
   /* ==== 상태 ==== */
   let map = null;
-  const selected = { sigungu: new Set(), emd: new Set() };
-  const allItems = { sigungu: [], emd: [] };
+  const selected = { sido: new Set(), sigungu: new Set(), emd: new Set() };
+  const allItems = { sido: [], sigungu: [], emd: [] };
   
   // 경로 그리기 상태
   let isDrawingRoute = false;
@@ -237,13 +255,19 @@
      els.countryWidth, els.adminWidth, els.countryDashed, els.adminDashed, els.showRivers]
      .forEach(el => el.addEventListener('input', applyRuntimeColors));
 
-    els.selectColor.addEventListener('input', updateSelectionStyles);
-    els.selectHalf.addEventListener('change', updateSelectionStyles);
+    // 분리된 색상 컨트롤
+    els.sigunguSelectColor.addEventListener('input', updateSelectionStyles);
+    els.sigunguSelectHalf.addEventListener('change', updateSelectionStyles);
+    els.emdSelectColor.addEventListener('input', updateSelectionStyles);
+    els.emdSelectHalf.addEventListener('change', updateSelectionStyles);
+
     els.clearSelection.addEventListener('click', clearAllSelections);
     els.exportSelection.addEventListener('click', exportSelections);
+    els.exportSelectionSvg.addEventListener('click', exportSelectionsSvg);
     els.savePng.addEventListener('click', savePNG);
 
     // 선택 UI 설정
+    setupSelector('sido');
     setupSelector('sigungu');
     setupSelector('emd');
 
@@ -251,7 +275,7 @@
     els.startRoute.addEventListener('click', startRouteDrawing);
     els.stopRoute.addEventListener('click', stopRouteDrawing);
     els.clearRoute.addEventListener('click', clearRoute);
-    els.exportSvg.addEventListener('click', exportRouteSvg);
+    els.exportRouteSvg.addEventListener('click', exportRouteSvg);
     
     createMap();
   }
@@ -297,9 +321,11 @@
 
     map.on('load', ()=>{
       applyRuntimeColors();
-      hideAllLabels(); // 모든 라벨 숨김
+      hideAllLabels();
       setupRouteLayer();
-      setStatus('지도 로드됨 — 타일셋 레벨을 켜세요.');
+      // 시도 기본으로 로드
+      toggleLevel('sido', true);
+      setStatus('지도 로드됨 — 시도가 기본으로 활성화되었습니다.');
     });
 
     map.on('style.load', ()=>{
@@ -341,11 +367,13 @@
 
     const fillId = `${lvl}-fill`;
     if(!map.getLayer(fillId)){
+      // 시도 레이어를 waterway 위에 배치
+      const beforeLayer = lvl === 'sido' ? getWaterwayLayerId() : firstSymbolId();
       map.addLayer({
         id: fillId, type:'fill', source: srcId, 'source-layer': SOURCE_LAYERS[lvl],
         paint:{ 'fill-color':'#ffffff', 'fill-opacity':0.03 },
         minzoom: (lvl==='emd'? 9 : lvl==='sigungu'? 6 : 0)
-      }, firstSymbolId());
+      }, beforeLayer);
     }
 
     const lineId = `${lvl}-line`;
@@ -363,15 +391,16 @@
 
     const selId = `${lvl}-selection`;
     if(!map.getLayer(selId)){
+      const beforeLayer = lvl === 'sido' ? getWaterwayLayerId() : firstSymbolId();
       map.addLayer({
         id: selId, type:'fill', source: srcId, 'source-layer': SOURCE_LAYERS[lvl],
         paint:{
-          'fill-color': els.selectColor.value,
-          'fill-opacity': els.selectHalf.checked ? 0.5 : 1.0
+          'fill-color': getSelectionColor(lvl),
+          'fill-opacity': getSelectionOpacity(lvl)
         },
         filter: ['==', ['get', 'FEATURE_ID'], ''],
         minzoom: (lvl==='emd'? 9 : lvl==='sigungu'? 6 : 0)
-      }, firstSymbolId());
+      }, beforeLayer);
     }
 
     setStatus(`로드됨: ${lvl}`);
@@ -389,6 +418,24 @@
     allItems[lvl] = [];
   }
 
+  function getWaterwayLayerId() {
+    const layers = map.getStyle()?.layers || [];
+    const waterway = layers.find(l => /waterway|river|stream/i.test(l.id));
+    return waterway?.id;
+  }
+
+  function getSelectionColor(lvl) {
+    if (lvl === 'sigungu') return els.sigunguSelectColor.value;
+    if (lvl === 'emd') return els.emdSelectColor.value;
+    return '#ffcc33'; // sido 기본색
+  }
+
+  function getSelectionOpacity(lvl) {
+    if (lvl === 'sigungu') return els.sigunguSelectHalf.checked ? 0.5 : 1.0;
+    if (lvl === 'emd') return els.emdSelectHalf.checked ? 0.5 : 1.0;
+    return 0.5; // sido 기본 투명도
+  }
+
   /* ==== 아이템 수집 ==== */
   function collectItems(lvl) {
     if (!map.getLayer(`${lvl}-fill`)) return;
@@ -400,15 +447,19 @@
     const items = new Set();
     features.forEach(feature => {
       const name = feature.properties?.[FIELDS[lvl]];
-      if (name) items.add(name);
+      if (name && typeof name === 'string') {
+        items.add(name);
+      }
     });
     
-    allItems[lvl] = Array.from(items).sort();
+    allItems[lvl] = Array.from(items).sort((a, b) => a.localeCompare(b, 'ko'));
     setStatus(`${lvl} 아이템 ${allItems[lvl].length}개 수집됨`);
   }
 
   /* ==== 선택 UI ==== */
   function setupSelector(type) {
+    if (type === 'sido') return; // 시도는 선택 UI 없음
+    
     const searchEl = els[`${type}Search`];
     const dropdownEl = els[`${type}Dropdown`];
     const selectedEl = els[`selected${type.charAt(0).toUpperCase() + type.slice(1)}`];
@@ -434,7 +485,7 @@
   
   function showDropdown(dropdownEl, items, type) {
     dropdownEl.innerHTML = '';
-    items.slice(0, 100).forEach(item => { // 최대 100개만 표시
+    items.slice(0, 100).forEach(item => {
       const div = document.createElement('div');
       div.className = 'dropdown-item';
       div.textContent = item;
@@ -454,6 +505,8 @@
   }
   
   function updateSelectedDisplay(type) {
+    if (type === 'sido') return;
+    
     const container = els[`selected${type.charAt(0).toUpperCase() + type.slice(1)}`];
     container.innerHTML = '';
     
@@ -472,17 +525,17 @@
 
   /* ==== 선택 스타일 및 필터 ==== */
   function updateSelectionStyles(){
-    ['sigungu','emd'].forEach(lvl=>{
+    ['sido','sigungu','emd'].forEach(lvl=>{
       const id = `${lvl}-selection`;
       if(map && map.getLayer(id)){
-        map.setPaintProperty(id,'fill-color', els.selectColor.value);
-        map.setPaintProperty(id,'fill-opacity', els.selectHalf.checked ? 0.5 : 1.0);
+        map.setPaintProperty(id,'fill-color', getSelectionColor(lvl));
+        map.setPaintProperty(id,'fill-opacity', getSelectionOpacity(lvl));
       }
     });
   }
 
   function updateSelectionFilters(){
-    ['sigungu','emd'].forEach(lvl=>{
+    ['sido','sigungu','emd'].forEach(lvl=>{
       const id = `${lvl}-selection`;
       if(map && map.getLayer(id)){
         const selectedItems = Array.from(selected[lvl]);
@@ -496,6 +549,7 @@
   }
 
   function clearAllSelections() {
+    selected.sido.clear();
     selected.sigungu.clear();
     selected.emd.clear();
     updateSelectedDisplay('sigungu');
@@ -506,6 +560,7 @@
 
   function exportSelections() {
     const out = { 
+      sido: Array.from(selected.sido),
       sigungu: Array.from(selected.sigungu), 
       emd: Array.from(selected.emd) 
     };
@@ -515,6 +570,51 @@
     a.download='selections.json'; 
     a.click();
     setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  }
+
+  function exportSelectionsSvg() {
+    const canvas = map.getCanvas();
+    const width = canvas.width;
+    const height = canvas.height;
+    
+    let svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">`;
+    
+    // 각 레벨별로 선택된 영역 처리
+    ['sido', 'sigungu', 'emd'].forEach(lvl => {
+      if (selected[lvl].size === 0) return;
+      
+      const selectedItems = Array.from(selected[lvl]);
+      const features = map.querySourceFeatures(`${lvl}-src`, {
+        sourceLayer: SOURCE_LAYERS[lvl],
+        filter: ['in', ['get', FIELDS[lvl]], ['literal', selectedItems]]
+      });
+      
+      const color = getSelectionColor(lvl);
+      const opacity = getSelectionOpacity(lvl);
+      
+      features.forEach(feature => {
+        if (feature.geometry.type === 'Polygon') {
+          const coordinates = feature.geometry.coordinates[0]; // 외부 링만
+          const path = coordinates.map((coord, i) => {
+            const pixel = map.project(coord);
+            return `${i === 0 ? 'M' : 'L'}${pixel.x},${pixel.y}`;
+          }).join(' ') + ' Z';
+          
+          svg += `<path d="${path}" fill="${color}" fill-opacity="${opacity}" stroke="none"/>`;
+        }
+      });
+    });
+    
+    svg += '</svg>';
+    
+    const blob = new Blob([svg], { type: 'image/svg+xml' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'selected-areas.svg';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    
+    toast('선택 영역 SVG가 다운로드되었습니다');
   }
 
   /* ==== 모든 라벨 숨김 ==== */
@@ -554,7 +654,9 @@
     // 강/수로 표시/숨김
     for(const l of L){
       if(/river|stream|canal|waterway|tributary/i.test((l.id||'')+' '+(l['source-layer']||''))){
-        tryLayout(l.id, 'visibility', showRivers ? 'visible' : 'none');
+        // 시도 레이어가 활성화되어 있으면 항상 숨김
+        const visibility = (showRivers && !els.chkSido.checked) ? 'visible' : 'none';
+        tryLayout(l.id, 'visibility', visibility);
         if(showRivers && l.type==='fill') {
           tryPaint(l.id,'fill-color',sea); tryPaint(l.id,'fill-opacity',wOp);
         }
@@ -707,7 +809,6 @@
     const width = canvas.width;
     const height = canvas.height;
     
-    // SVG 생성
     let svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">`;
     svg += '<path d="M';
     
@@ -723,7 +824,6 @@
     svg += '" stroke="red" stroke-width="3" fill="none" stroke-opacity="0.8"/>';
     svg += '</svg>';
     
-    // 다운로드
     const blob = new Blob([svg], { type: 'image/svg+xml' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -731,7 +831,7 @@
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     
-    toast('SVG 파일이 다운로드되었습니다');
+    toast('경로 SVG가 다운로드되었습니다');
   }
 
   /* ==== PNG 저장 ==== */
