@@ -6,8 +6,8 @@
     <title>한국지도 웹앱</title>
     
     <!-- Mapbox GL JS -->
-    <script src='https://api.mapbox.com/mapbox-gl-js/v3.0.0/mapbox-gl.js'></script>
-    <link href='https://api.mapbox.com/mapbox-gl-js/v3.0.0/mapbox-gl.css' rel='stylesheet' />
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css' rel='stylesheet' />
     
     <!-- Mapbox Geocoder -->
     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
@@ -310,10 +310,18 @@
                 <div class="control-item">
                     <label for="mapStyle">스타일 선택:</label>
                     <select id="mapStyle">
-                        <option value="mapbox://styles/mmjjpp/cmfqi0c3200f301r8cgqrfv62" selected>Basic Map</option>
+                        <option value="mapbox://styles/mapbox/standard" selected>Standard (런타임 제어 가능)</option>
                         <option value="mapbox://styles/mapbox/satellite-v9">Satellite</option>
-                        <option value="mapbox://styles/kbsnews/cmd3179oj00q801ri8qrd2dl8">KBS 스타일 1</option>
-                        <option value="mapbox://styles/kbsnews/clsle8lhq008101rbgzbm0x8q">KBS 스타일 2</option>
+                        <option value="mapbox://styles/mapbox/light-v11">Light</option>
+                        <option value="mapbox://styles/mapbox/dark-v11">Dark</option>
+                    </select>
+                </div>
+                <div class="control-item">
+                    <label for="lightPreset">테마 (Standard 전용):</label>
+                    <select id="lightPreset">
+                        <option value="day">Day</option>
+                        <option value="dusk">Dusk</option>
+                        <option value="dawn">Dawn</option>
                     </select>
                 </div>
             </div>
@@ -327,11 +335,11 @@
                 </div>
                 <div class="control-item">
                     <label for="landColor">육지색:</label>
-                    <input type="color" id="landColor" value="#8896a1">
+                    <input type="color" id="landColor" value="#f4f1e6">
                 </div>
                 <div class="control-item">
                     <label for="borderColor">경계선색:</label>
-                    <input type="color" id="borderColor" value="#ffffff">
+                    <input type="color" id="borderColor" value="#333333">
                 </div>
             </div>
 
@@ -428,11 +436,11 @@
 
     <script>
         // ============================================================================
-        // KOREA MAP APP - Clean Version
+        // KOREA MAP APP - Updated with Standard Style and Runtime Styling
         // ============================================================================
 
         // Set your Mapbox access token here
-        mapboxgl.accessToken = 'pk.eyJ1IjoibW1qanBwIiwiYSI6ImNtZmZnM3RwODBoYnEya3B6bnB3NW5zcHQifQ.6UON_8x8X84bxsCrURuggA';
+        mapboxgl.accessToken = 'pk.eyJ1IjoibW1qanBwIiwiYSI6ImNtZmZnM3RwODBoYnEyk3B6bnB3NW5zcHQifQ.6UON_8x8X84bxsCrURuggA';
 
         // Global variables
         let map;
@@ -440,6 +448,7 @@
         let isDrawingRoute = false;
         let routePoints = [];
         let currentAdminLevel = 'sido';
+        let isStandardStyle = true;
 
         // Color palette
         const colorPalette = [
@@ -476,7 +485,7 @@
         function initializeMap() {
             map = new mapboxgl.Map({
                 container: 'map',
-                style: 'mapbox://styles/mmjjpp/cmfqi0c3200f301r8cgqrfv62',
+                style: 'mapbox://styles/mapbox/standard',
                 center: [127.7669, 35.9078],
                 zoom: 6.5,
                 maxBounds: [[120, 30], [135, 43]],
@@ -485,8 +494,14 @@
 
             map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-            map.on('load', function() {
-                console.log('Map loaded successfully');
+            map.on('style.load', function() {
+                console.log('Map style loaded successfully');
+                
+                // Apply initial standard style configuration
+                if (isStandardStyle) {
+                    updateStandardStyleConfig();
+                }
+                
                 initializeColorPalette();
                 initializeControls();
                 initializeGeocoder();
@@ -498,6 +513,69 @@
                 console.error('Map error:', e);
                 showError('지도 로드 중 오류: ' + e.error.message);
             });
+        }
+
+        // Update standard style configuration
+        function updateStandardStyleConfig() {
+            if (!isStandardStyle) return;
+            
+            try {
+                // Set light preset
+                const lightPreset = document.getElementById('lightPreset').value;
+                map.setConfigProperty('basemap', 'lightPreset', lightPreset);
+                
+                // Apply colors using config properties (for Standard style)
+                const oceanColor = document.getElementById('oceanColor').value;
+                const landColor = document.getElementById('landColor').value;
+                
+                // Note: These property names may vary - check Mapbox documentation for latest
+                map.setConfigProperty('basemap', 'waterColor', oceanColor);
+                map.setConfigProperty('basemap', 'landColor', landColor);
+                
+            } catch (error) {
+                console.warn('Standard style config update failed:', error);
+                // Fall back to paint property method
+                updateClassicStyleColors();
+            }
+        }
+
+        // Update classic style colors using paint properties
+        function updateClassicStyleColors() {
+            const oceanColor = document.getElementById('oceanColor').value;
+            const landColor = document.getElementById('landColor').value;
+            const borderColor = document.getElementById('borderColor').value;
+            
+            try {
+                // Common layer IDs for different styles
+                const waterLayers = ['water', 'waterway', 'waterway-shadow'];
+                const landLayers = ['land', 'background'];
+                const borderLayers = ['admin-0-boundary', 'admin-1-boundary'];
+                
+                waterLayers.forEach(layerId => {
+                    if (map.getLayer(layerId)) {
+                        map.setPaintProperty(layerId, 'fill-color', oceanColor);
+                    }
+                });
+                
+                landLayers.forEach(layerId => {
+                    if (map.getLayer(layerId)) {
+                        if (layerId === 'background') {
+                            map.setPaintProperty(layerId, 'background-color', landColor);
+                        } else {
+                            map.setPaintProperty(layerId, 'fill-color', landColor);
+                        }
+                    }
+                });
+                
+                borderLayers.forEach(layerId => {
+                    if (map.getLayer(layerId)) {
+                        map.setPaintProperty(layerId, 'line-color', borderColor);
+                    }
+                });
+                
+            } catch (error) {
+                console.warn('Classic style color update failed:', error);
+            }
         }
 
         // Load GeoJSON data
@@ -524,6 +602,11 @@
                     emdResponse.json()
                 ]);
                 
+                // Add IDs to features to fix the feature ID error
+                addFeatureIds(sidoData, 'sido');
+                addFeatureIds(sigunguData, 'sigungu');
+                addFeatureIds(emdData, 'emd');
+                
                 console.log('GeoJSON loaded - Sido:', sidoData.features.length, 'Sigungu:', sigunguData.features.length, 'Emd:', emdData.features.length);
                 
                 window.koreaData = { sido: sidoData, sigungu: sigunguData, emd: emdData };
@@ -542,6 +625,23 @@
             }
         }
 
+        // Add feature IDs to prevent the feature ID error
+        function addFeatureIds(geojsonData, level) {
+            geojsonData.features.forEach((feature, index) => {
+                if (!feature.id) {
+                    // Create a unique ID based on properties or index
+                    if (feature.properties.NF_ID) {
+                        feature.id = `${level}_${feature.properties.NF_ID}`;
+                    } else if (feature.properties.SIDO_NM || feature.properties.SIGUNGU_NM || feature.properties.ADM_NM) {
+                        const name = feature.properties.SIDO_NM || feature.properties.SIGUNGU_NM || feature.properties.ADM_NM;
+                        feature.id = `${level}_${name}_${index}`;
+                    } else {
+                        feature.id = `${level}_${index}`;
+                    }
+                }
+            });
+        }
+
         // Add GeoJSON sources
         function addGeoJsonSources() {
             ['sido', 'sigungu', 'emd'].forEach(level => {
@@ -551,9 +651,9 @@
             });
 
             const { sido, sigungu, emd } = window.koreaData;
-            map.addSource('korea-sido-source', { type: 'geojson', data: sido });
-            map.addSource('korea-sigungu-source', { type: 'geojson', data: sigungu });
-            map.addSource('korea-emd-source', { type: 'geojson', data: emd });
+            map.addSource('korea-sido-source', { type: 'geojson', data: sido, generateId: true });
+            map.addSource('korea-sigungu-source', { type: 'geojson', data: sigungu, generateId: true });
+            map.addSource('korea-emd-source', { type: 'geojson', data: emd, generateId: true });
         }
 
         // Add GeoJSON layers
@@ -684,6 +784,7 @@
 
             // Map style
             document.getElementById('mapStyle').addEventListener('change', function(e) {
+                isStandardStyle = e.target.value.includes('standard');
                 map.setStyle(e.target.value);
                 map.once('styledata', () => {
                     setTimeout(() => {
@@ -692,28 +793,50 @@
                             addGeoJsonLayers();
                             setupMapInteractions();
                             switchAdminLevel(currentAdminLevel);
+                            
+                            // Apply colors based on style type
+                            if (isStandardStyle) {
+                                updateStandardStyleConfig();
+                            } else {
+                                updateClassicStyleColors();
+                            }
                         }
                     }, 500);
                 });
             });
 
+            // Light preset for Standard style
+            document.getElementById('lightPreset').addEventListener('change', function(e) {
+                if (isStandardStyle) {
+                    try {
+                        map.setConfigProperty('basemap', 'lightPreset', e.target.value);
+                    } catch (error) {
+                        console.warn('Light preset change failed:', error);
+                    }
+                }
+            });
+
             // Sliders
             document.getElementById('countryBorderWidth').addEventListener('input', function(e) {
                 document.getElementById('countryBorderValue').textContent = e.target.value;
+                updateBorderStyles();
             });
 
             document.getElementById('adminBorderWidth').addEventListener('input', function(e) {
                 document.getElementById('adminBorderValue').textContent = e.target.value;
+                updateAdminBorderStyles();
             });
 
             // Colors
             document.getElementById('oceanColor').addEventListener('change', updateMapColors);
             document.getElementById('landColor').addEventListener('change', updateMapColors);
-            document.getElementById('borderColor').addEventListener('change', updateBorderColor);
+            document.getElementById('borderColor').addEventListener('change', updateMapColors);
             document.getElementById('regionColor').addEventListener('change', updateSelectedRegionColors);
 
             // Checkboxes
             document.getElementById('showLabels').addEventListener('change', updateLabelVisibility);
+            document.getElementById('countryBorderDashed').addEventListener('change', updateBorderStyles);
+            document.getElementById('adminBorderDashed').addEventListener('change', updateAdminBorderStyles);
 
             // Buttons
             document.getElementById('exportPNG').addEventListener('click', exportMapAsPNG);
@@ -788,7 +911,7 @@
 
         // Toggle region selection
         function toggleRegionSelection(feature, level) {
-            const regionId = feature.properties.NF_ID || feature.id || Math.random().toString();
+            const regionId = feature.id || feature.properties.NF_ID || Math.random().toString();
             
             let regionName;
             switch(level) {
@@ -802,13 +925,13 @@
             
             if (existingIndex > -1) {
                 selectedRegions.splice(existingIndex, 1);
-                if (feature.id !== undefined) {
-                    try {
-                        map.setFeatureState(
-                            { source: `korea-${level}-source`, id: feature.id },
-                            { selected: false }
-                        );
-                    } catch (e) {}
+                try {
+                    map.setFeatureState(
+                        { source: `korea-${level}-source`, id: feature.id },
+                        { selected: false }
+                    );
+                } catch (e) {
+                    console.warn('Failed to update feature state:', e);
                 }
                 showToast(`${regionName} 선택 해제됨`, 'success');
             } else {
@@ -821,13 +944,13 @@
                     color: selectedColor
                 });
                 
-                if (feature.id !== undefined) {
-                    try {
-                        map.setFeatureState(
-                            { source: `korea-${level}-source`, id: feature.id },
-                            { selected: true }
-                        );
-                    } catch (e) {}
+                try {
+                    map.setFeatureState(
+                        { source: `korea-${level}-source`, id: feature.id },
+                        { selected: true }
+                    );
+                } catch (e) {
+                    console.warn('Failed to update feature state:', e);
                 }
                 showToast(`${regionName} 선택됨`, 'success');
             }
@@ -846,15 +969,51 @@
 
         // Update functions
         function updateMapColors() {
-            showToast('지도 색상 기능은 스타일에 따라 달라집니다', 'info');
+            if (isStandardStyle) {
+                updateStandardStyleConfig();
+            } else {
+                updateClassicStyleColors();
+            }
         }
 
-        function updateBorderColor() {
-            const color = document.getElementById('borderColor').value;
+        function updateBorderStyles() {
+            const width = document.getElementById('countryBorderWidth').value;
+            const isDashed = document.getElementById('countryBorderDashed').checked;
+            const borderColor = document.getElementById('borderColor').value;
+            
+            try {
+                const borderLayers = ['admin-0-boundary', 'admin-1-boundary'];
+                borderLayers.forEach(layerId => {
+                    if (map.getLayer(layerId)) {
+                        map.setPaintProperty(layerId, 'line-width', parseInt(width));
+                        map.setPaintProperty(layerId, 'line-color', borderColor);
+                        if (isDashed) {
+                            map.setPaintProperty(layerId, 'line-dasharray', [2, 2]);
+                        } else {
+                            map.setPaintProperty(layerId, 'line-dasharray', [1, 0]);
+                        }
+                    }
+                });
+            } catch (error) {
+                console.warn('Border style update failed:', error);
+            }
+        }
+
+        function updateAdminBorderStyles() {
+            const width = document.getElementById('adminBorderWidth').value;
+            const isDashed = document.getElementById('adminBorderDashed').checked;
+            const borderColor = document.getElementById('borderColor').value;
+            
             Object.keys(layerConfig).forEach(level => {
                 const layerId = layerConfig[level].id + '-border';
                 if (map.getLayer(layerId)) {
-                    map.setPaintProperty(layerId, 'line-color', color);
+                    map.setPaintProperty(layerId, 'line-width', parseInt(width));
+                    map.setPaintProperty(layerId, 'line-color', borderColor);
+                    if (isDashed) {
+                        map.setPaintProperty(layerId, 'line-dasharray', [2, 2]);
+                    } else {
+                        map.setPaintProperty(layerId, 'line-dasharray', [1, 0]);
+                    }
                 }
             });
         }
@@ -880,7 +1039,9 @@
                             selectedColor,
                             '#8896a1'
                         ]);
-                    } catch (e) {}
+                    } catch (e) {
+                        console.warn('Layer color update failed:', e);
+                    }
                 }
             });
         }
@@ -898,13 +1059,13 @@
 
         function clearRegionSelection() {
             selectedRegions.forEach(region => {
-                if (region.feature.id !== undefined) {
-                    try {
-                        map.setFeatureState(
-                            { source: `korea-${region.level}-source`, id: region.feature.id },
-                            { selected: false }
-                        );
-                    } catch (e) {}
+                try {
+                    map.setFeatureState(
+                        { source: `korea-${region.level}-source`, id: region.feature.id },
+                        { selected: false }
+                    );
+                } catch (e) {
+                    console.warn('Failed to clear feature state:', e);
                 }
             });
             
