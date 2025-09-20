@@ -233,6 +233,7 @@
   let map = null;
   const selected = { sido: new Set(), sigungu: new Set(), emd: new Set() };
   const allItems = { sido: [], sigungu: [], emd: [] };
+  const selectedGeometries = { sido: [], sigungu: [], emd: [] }; // 기하학적 정보 저장
   
   // 경로 그리기 상태
   let isDrawingRoute = false;
@@ -256,10 +257,22 @@
      .forEach(el => el.addEventListener('input', applyRuntimeColors));
 
     // 분리된 색상 컨트롤
-    els.sigunguSelectColor.addEventListener('input', updateSelectionStyles);
-    els.sigunguSelectHalf.addEventListener('change', updateSelectionStyles);
-    els.emdSelectColor.addEventListener('input', updateSelectionStyles);
-    els.emdSelectHalf.addEventListener('change', updateSelectionStyles);
+    els.sigunguSelectColor.addEventListener('input', () => {
+      updateSelectionStyles();
+      updateSelectionDisplay();
+    });
+    els.sigunguSelectHalf.addEventListener('change', () => {
+      updateSelectionStyles();
+      updateSelectionDisplay();
+    });
+    els.emdSelectColor.addEventListener('input', () => {
+      updateSelectionStyles();
+      updateSelectionDisplay();
+    });
+    els.emdSelectHalf.addEventListener('change', () => {
+      updateSelectionStyles();
+      updateSelectionDisplay();
+    });
 
     els.clearSelection.addEventListener('click', clearAllSelections);
     els.exportSelection.addEventListener('click', exportSelections);
@@ -323,6 +336,7 @@
       applyRuntimeColors();
       hideAllLabels();
       setupRouteLayer();
+      setupSelectionLayers(); // 새로운 선택 레이어 설정
       // 시도 기본으로 로드
       toggleLevel('sido', true);
       setStatus('지도 로드됨 — 시도가 기본으로 활성화되었습니다.');
@@ -332,6 +346,7 @@
       applyRuntimeColors();
       hideAllLabels();
       setupRouteLayer();
+      setupSelectionLayers(); // 스타일 변경 후에도 재설정
 
       if(els.chkSido.checked) addLevel('sido');
       if(els.chkSigungu.checked) addLevel('sigungu');
@@ -339,6 +354,7 @@
 
       updateSelectionStyles();
       updateSelectionFilters();
+      updateSelectionDisplay(); // geometry 기반 표시 업데이트
     });
 
     // 경로 그리기를 위한 클릭 이벤트
@@ -399,7 +415,8 @@
           'fill-opacity': getSelectionOpacity(lvl)
         },
         filter: ['==', ['get', 'FEATURE_ID'], ''],
-        minzoom: (lvl==='emd'? 9 : lvl==='sigungu'? 6 : 0)
+        minzoom: 0,
+        maxzoom: 24
       }, beforeLayer);
     }
 
@@ -497,8 +514,27 @@
   
   function selectItem(type, item) {
     selected[type].add(item);
+    
+    // 선택된 아이템의 geometry 저장
+    if (map.getLayer(`${type}-fill`)) {
+      const features = map.querySourceFeatures(`${type}-src`, {
+        sourceLayer: SOURCE_LAYERS[type],
+        filter: ['==', ['get', FIELDS[type]], item]
+      });
+      
+      features.forEach(feature => {
+        if (feature.geometry) {
+          selectedGeometries[type].push({
+            name: item,
+            geometry: feature.geometry,
+            properties: feature.properties
+          });
+        }
+      });
+    }
+    
     updateSelectedDisplay(type);
-    updateSelectionFilters();
+    updateSelectionDisplay();
     els[`${type}Search`].value = '';
     els[`${type}Dropdown`].style.display = 'none';
     setStatus(`선택됨: ${item}`);
@@ -516,10 +552,67 @@
       div.innerHTML = `${item} <span class="remove" data-item="${item}">×</span>`;
       div.querySelector('.remove').addEventListener('click', () => {
         selected[type].delete(item);
+        // geometry에서도 제거
+        selectedGeometries[type] = selectedGeometries[type].filter(g => g.name !== item);
         updateSelectedDisplay(type);
-        updateSelectionFilters();
+        updateSelectionDisplay();
       });
       container.appendChild(div);
+    });
+  }
+
+  /* ==== Geometry 기반 선택 표시 ==== */
+  function setupSelectionLayers() {
+    ['sido', 'sigungu', 'emd'].forEach(type => {
+      const sourceId = `${type}-selection-geojson`;
+      const layerId = `${type}-selection-persistent`;
+      
+      if (!map.getSource(sourceId)) {
+        map.addSource(sourceId, {
+          type: 'geojson',
+          data: {
+            type: 'FeatureCollection',
+            features: []
+          }
+        });
+      }
+      
+      if (!map.getLayer(layerId)) {
+        map.addLayer({
+          id: layerId,
+          type: 'fill',
+          source: sourceId,
+          paint: {
+            'fill-color': getSelectionColor(type),
+            'fill-opacity': getSelectionOpacity(type)
+          }
+        }, firstSymbolId());
+      }
+    });
+  }
+  
+  function updateSelectionDisplay() {
+    ['sido', 'sigungu', 'emd'].forEach(type => {
+      const sourceId = `${type}-selection-geojson`;
+      if (!map.getSource(sourceId)) return;
+      
+      const features = selectedGeometries[type].map(item => ({
+        type: 'Feature',
+        properties: item.properties || {},
+        geometry: item.geometry
+      }));
+      
+      map.getSource(sourceId).setData({
+        type: 'FeatureCollection',
+        features: features
+      });
+      
+      // 색상 업데이트
+      const layerId = `${type}-selection-persistent`;
+      if (map.getLayer(layerId)) {
+        map.setPaintProperty(layerId, 'fill-color', getSelectionColor(type));
+        map.setPaintProperty(layerId, 'fill-opacity', getSelectionOpacity(type));
+      }
     });
   }
 
@@ -530,6 +623,13 @@
       if(map && map.getLayer(id)){
         map.setPaintProperty(id,'fill-color', getSelectionColor(lvl));
         map.setPaintProperty(id,'fill-opacity', getSelectionOpacity(lvl));
+      }
+      
+      // persistent layer도 업데이트
+      const persistentId = `${lvl}-selection-persistent`;
+      if(map && map.getLayer(persistentId)){
+        map.setPaintProperty(persistentId,'fill-color', getSelectionColor(lvl));
+        map.setPaintProperty(persistentId,'fill-opacity', getSelectionOpacity(lvl));
       }
     });
   }
@@ -552,9 +652,13 @@
     selected.sido.clear();
     selected.sigungu.clear();
     selected.emd.clear();
+    selectedGeometries.sido = [];
+    selectedGeometries.sigungu = [];
+    selectedGeometries.emd = [];
     updateSelectedDisplay('sigungu');
     updateSelectedDisplay('emd');
     updateSelectionFilters();
+    updateSelectionDisplay();
     setStatus('모든 선택 해제됨');
   }
 
@@ -579,33 +683,60 @@
     
     let svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">`;
     
-    // 각 레벨별로 선택된 영역 처리
+    // 각 레벨별로 선택된 영역 처리 - GeoJSON 데이터 사용
     ['sido', 'sigungu', 'emd'].forEach(lvl => {
-      if (selected[lvl].size === 0) return;
-      
-      const selectedItems = Array.from(selected[lvl]);
-      const features = map.querySourceFeatures(`${lvl}-src`, {
-        sourceLayer: SOURCE_LAYERS[lvl],
-        filter: ['in', ['get', FIELDS[lvl]], ['literal', selectedItems]]
-      });
+      if (selectedGeometries[lvl].length === 0) return;
       
       const color = getSelectionColor(lvl);
       const opacity = getSelectionOpacity(lvl);
       
-      features.forEach(feature => {
-        if (feature.geometry.type === 'Polygon') {
-          const coordinates = feature.geometry.coordinates[0]; // 외부 링만
-          const path = coordinates.map((coord, i) => {
-            const pixel = map.project(coord);
-            return `${i === 0 ? 'M' : 'L'}${pixel.x},${pixel.y}`;
-          }).join(' ') + ' Z';
-          
-          svg += `<path d="${path}" fill="${color}" fill-opacity="${opacity}" stroke="none"/>`;
+      selectedGeometries[lvl].forEach(item => {
+        const geometry = item.geometry;
+        
+        if (geometry.type === 'Polygon') {
+          // 모든 polygon ring 처리 (외부 + 구멍)
+          geometry.coordinates.forEach((ring, ringIndex) => {
+            let path = '';
+            ring.forEach((coord, i) => {
+              const pixel = map.project(coord);
+              if (i === 0) {
+                path += `M${pixel.x},${pixel.y}`;
+              } else {
+                path += ` L${pixel.x},${pixel.y}`;
+              }
+            });
+            path += ' Z';
+            
+            svg += `<path d="${path}" fill="${color}" fill-opacity="${opacity}" stroke="none"/>`;
+          });
+        } else if (geometry.type === 'MultiPolygon') {
+          // MultiPolygon 처리
+          geometry.coordinates.forEach(polygon => {
+            polygon.forEach((ring, ringIndex) => {
+              let path = '';
+              ring.forEach((coord, i) => {
+                const pixel = map.project(coord);
+                if (i === 0) {
+                  path += `M${pixel.x},${pixel.y}`;
+                } else {
+                  path += ` L${pixel.x},${pixel.y}`;
+                }
+              });
+              path += ' Z';
+              
+              svg += `<path d="${path}" fill="${color}" fill-opacity="${opacity}" stroke="none"/>`;
+            });
+          });
         }
       });
     });
     
     svg += '</svg>';
+    
+    if (svg === `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg"></svg>`) {
+      toast('선택된 영역이 없습니다');
+      return;
+    }
     
     const blob = new Blob([svg], { type: 'image/svg+xml' });
     const a = document.createElement('a');
