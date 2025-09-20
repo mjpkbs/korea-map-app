@@ -96,6 +96,7 @@
           <div id="sigunguDropdown" class="selector-dropdown"></div>
         </div>
         <div class="selected-items" id="selectedSigungu"></div>
+        <button class="btn btn-small" id="refreshSigungu" style="margin-top:4px">데이터 새로고침</button>
       </div>
     </div>
 
@@ -112,6 +113,7 @@
           <div id="emdDropdown" class="selector-dropdown"></div>
         </div>
         <div class="selected-items" id="selectedEmd"></div>
+        <button class="btn btn-small" id="refreshEmd" style="margin-top:4px">데이터 새로고침</button>
       </div>
     </div>
 
@@ -279,6 +281,19 @@
     els.exportSelectionSvg.addEventListener('click', exportSelectionsSvg);
     els.savePng.addEventListener('click', savePNG);
 
+    // 데이터 새로고침 버튼
+    document.getElementById('refreshSigungu').addEventListener('click', () => {
+      allItems.sigungu = [];
+      collectItems('sigungu');
+      setStatus('시군구 데이터 새로고침 중...');
+    });
+    
+    document.getElementById('refreshEmd').addEventListener('click', () => {
+      allItems.emd = [];
+      collectItems('emd');
+      setStatus('읍면동 데이터 새로고침 중...');
+    });
+
     // 선택 UI 설정
     setupSelector('sido');
     setupSelector('sigungu');
@@ -337,6 +352,13 @@
       hideAllLabels();
       setupRouteLayer();
       setupSelectionLayers(); // 새로운 선택 레이어 설정
+      
+      // 선택 UI 재설정
+      setTimeout(() => {
+        setupSelector('sigungu');
+        setupSelector('emd');
+      }, 500);
+      
       // 시도 기본으로 로드
       toggleLevel('sido', true);
       setStatus('지도 로드됨 — 시도가 기본으로 활성화되었습니다.');
@@ -347,6 +369,12 @@
       hideAllLabels();
       setupRouteLayer();
       setupSelectionLayers(); // 스타일 변경 후에도 재설정
+
+      // 선택 UI 재설정
+      setTimeout(() => {
+        setupSelector('sigungu');
+        setupSelector('emd');
+      }, 500);
 
       if(els.chkSido.checked) addLevel('sido');
       if(els.chkSigungu.checked) addLevel('sigungu');
@@ -365,8 +393,17 @@
   async function toggleLevel(lvl, on){
     if(on) {
       await addLevel(lvl);
-      // 데이터 로드 후 아이템 목록 수집
-      setTimeout(() => collectItems(lvl), 1000);
+      // 데이터 로드 후 아이템 목록 수집 - 더 긴 대기시간과 재시도
+      setTimeout(() => {
+        collectItems(lvl);
+        // 추가 재시도
+        setTimeout(() => {
+          if (allItems[lvl].length === 0) {
+            console.log(`Retrying data collection for ${lvl}`);
+            collectItems(lvl);
+          }
+        }, 3000);
+      }, 1500);
     } else {
       removeLevel(lvl);
     }
@@ -457,20 +494,49 @@
   function collectItems(lvl) {
     if (!map.getLayer(`${lvl}-fill`)) return;
     
-    const features = map.querySourceFeatures(`${lvl}-src`, {
-      sourceLayer: SOURCE_LAYERS[lvl]
-    });
-    
-    const items = new Set();
-    features.forEach(feature => {
-      const name = feature.properties?.[FIELDS[lvl]];
-      if (name && typeof name === 'string') {
-        items.add(name);
+    try {
+      const features = map.querySourceFeatures(`${lvl}-src`, {
+        sourceLayer: SOURCE_LAYERS[lvl]
+      });
+      
+      const items = new Set();
+      features.forEach(feature => {
+        const props = feature.properties;
+        if (props && props[FIELDS[lvl]]) {
+          const name = props[FIELDS[lvl]];
+          if (typeof name === 'string' && name.trim()) {
+            items.add(name.trim());
+          }
+        }
+      });
+      
+      allItems[lvl] = Array.from(items).sort((a, b) => a.localeCompare(b, 'ko'));
+      console.log(`${lvl} items collected:`, allItems[lvl].length, allItems[lvl].slice(0, 5));
+      setStatus(`${lvl} 아이템 ${allItems[lvl].length}개 수집됨`);
+      
+      // 수집 완료 후 드롭다운 업데이트
+      if (lvl !== 'sido') {
+        updateDropdownIfNeeded(lvl);
       }
-    });
+    } catch (error) {
+      console.error(`Error collecting ${lvl} items:`, error);
+      // 재시도
+      setTimeout(() => collectItems(lvl), 2000);
+    }
+  }
+
+  function updateDropdownIfNeeded(lvl) {
+    const searchEl = els[`${lvl}Search`];
+    const dropdownEl = els[`${lvl}Dropdown`];
     
-    allItems[lvl] = Array.from(items).sort((a, b) => a.localeCompare(b, 'ko'));
-    setStatus(`${lvl} 아이템 ${allItems[lvl].length}개 수집됨`);
+    if (searchEl && searchEl === document.activeElement) {
+      // 검색창이 포커스되어 있으면 드롭다운 표시
+      const query = searchEl.value.toLowerCase();
+      const filtered = allItems[lvl].filter(item => 
+        item.toLowerCase().includes(query)
+      );
+      showDropdown(dropdownEl, filtered, lvl);
+    }
   }
 
   /* ==== 선택 UI ==== */
