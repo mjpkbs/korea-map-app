@@ -3,45 +3,35 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>한국 지도 — Mapbox 대용량 GeoJSON & 런타임 스타일 (Fixed)</title>
+  <title>한국 지도 — Mapbox Tilesets (Vector) & 런타임 스타일</title>
 
-  <!-- ✅ 공식 Mapbox CDN (CSS/JS) -->
   <link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet" />
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
-
-  <!-- ✅ Geocoder 플러그인 (CSS/JS) -->
   <link href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.2/mapbox-gl-geocoder.css" rel="stylesheet" />
   <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.2/mapbox-gl-geocoder.min.js"></script>
 
-  <!-- 작은 파비콘(404 방지) -->
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%20viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='8' fill='%230f3564'/%3E%3C/svg%3E">
-
   <style>
-    :root{ --bg:#0b0f14; --panel:#11161d; --muted:#9fb0c3; --accent:#2eaadc; --border:#1f2a36; --text:#e6eef7; }
+    :root{ --bg:#0b0f14; --panel:#11161d; --muted:#9fb0c3; --border:#1f2a36; --text:#e6eef7; }
     *{box-sizing:border-box}
     html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Pretendard,Apple SD Gothic Neo,Noto Sans KR,Arial,sans-serif}
     #app{display:grid;grid-template-columns:360px 1fr;height:100%}
-    #panel{background:var(--panel);border-right:1px solid var(--border);padding:14px 14px 18px;overflow:auto}
+    #panel{background:#11161d;border-right:1px solid var(--border);padding:14px;overflow:auto}
     #map{position:relative}
     #mapContainer{width:100%;height:100%}
-    h1{font-size:18px;margin:0 0 8px 0}
+    h1{font-size:18px;margin:0 0 8px}
     h2{font-size:13px;margin:10px 0;color:var(--muted);font-weight:700;letter-spacing:.4px}
     label{display:block;font-size:13px;margin:8px 0 4px}
-    input[type="text"], input[type="number"], select{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:10px;background:#0c1218;color:var(--text);outline:none}
+    input[type="text"], input[type="number"]{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:10px;background:#0c1218;color:var(--text)}
     input[type="color"]{width:100%;height:38px;border:1px solid var(--border);border-radius:10px;background:#0c1218}
     input[type="range"]{width:100%}
     .row{display:grid;grid-template-columns:1fr 110px;gap:10px;align-items:center}
     .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
     .btn{background:#13202c;border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:10px;cursor:pointer;font-weight:600}
-    .btn[disabled]{opacity:.5;cursor:not-allowed}
     .btn:hover{background:#0f1a24}
     .ghost{background:transparent}
     .section{background:#0c1218;border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px}
-    .inline{display:flex;gap:10px;align-items:center}
     .switch{display:flex;align-items:center;justify-content:space-between}
     .muted{color:var(--muted);font-size:12px}
-    .small{font-size:12px}
-    #status{font-size:12px;color:#b8c7d8;line-height:1.5}
     .floating{position:absolute;top:10px;left:10px;z-index:5}
     .toast{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.7);color:#fff;padding:8px 10px;border-radius:8px;z-index:10;display:none}
   </style>
@@ -49,75 +39,72 @@
 <body>
 <div id="app">
   <aside id="panel">
-    <h1>한국 지도 앱 — Mapbox</h1>
+    <h1>한국 지도 앱 — Tilesets Vector</h1>
     <div class="section">
       <label>Mapbox Access Token</label>
-      <input id="token" type="text" placeholder="본인 Access Token을 입력하세요" />
+      <input id="token" type="text" placeholder="본인 Access Token" />
       <div class="two" style="margin-top:8px">
-        <button class="btn" id="initMap" disabled>지도 초기화</button>
+        <button class="btn" id="initMap">지도 초기화</button>
         <button class="btn ghost" id="saveToken">토큰 저장</button>
       </div>
-      <div class="muted small" style="margin-top:6px">* 토큰은 localStorage에 저장됩니다.</div>
-      <div id="libStatus" class="muted small" style="margin-top:6px">라이브러리 로딩 중…</div>
+      <div class="muted" id="libStatus" style="margin-top:6px">Mapbox GL 로드됨</div>
     </div>
 
     <div class="section">
       <h2>검색</h2>
-      <div class="muted small">좌측 상단 검색창(Geocoder)에서 주소/장소 검색 → 자동 줌</div>
+      <div class="muted">좌상단 Geocoder로 주소/장소 검색 → 자동 줌</div>
     </div>
 
     <div class="section">
-      <h2>행정구역 레벨 (대용량 대응: ON 때만 로드)</h2>
+      <h2>행정구역 레벨 (타일셋)</h2>
       <div class="switch"><span>시도</span><input type="checkbox" id="chkSido"></div>
       <div class="switch"><span>시군구</span><input type="checkbox" id="chkSigungu"></div>
       <div class="switch"><span>읍면동</span><input type="checkbox" id="chkEmd"></div>
-      <div class="muted small" style="margin-top:6px">* 켜면 해당 GeoJSON을 fetch→소스/레이어 추가, 끄면 제거하여 메모리 절약</div>
+      <div class="muted" style="margin-top:6px">* 켜면 해당 타일셋 레이어 추가, 끄면 제거</div>
     </div>
 
     <div class="section">
       <h2>라벨</h2>
       <div class="switch"><span>Mapbox 기본 라벨</span><input type="checkbox" id="chkBaseLabels" checked></div>
-      <div class="switch"><span>행정 라벨(우리 데이터)</span><input type="checkbox" id="chkOurLabels" checked></div>
-      <div class="muted small" style="margin-top:6px">* 기본 라벨은 스타일 심볼 레이어를 휴리스틱으로 제어(스타일에 따라 일부 예외 가능)</div>
+      <div class="switch"><span>행정 라벨(우리 타일셋)</span><input type="checkbox" id="chkOurLabels" checked></div>
     </div>
 
     <div class="section">
       <h2>런타임 스타일</h2>
       <div class="row">
         <div><label>바다색</label><input type="color" id="waterColor" value="#0f3564"></div>
-        <div><label class="small">불투명도</label><input type="range" id="waterOpacity" min="0" max="1" step="0.01" value="1"></div>
+        <div><label class="muted">불투명도</label><input type="range" id="waterOpacity" min="0" max="1" step="0.01" value="1"></div>
       </div>
       <div class="row">
         <div><label>육지색</label><input type="color" id="landColor" value="#8896a1"></div>
-        <div><label class="small">불투명도</label><input type="range" id="landOpacity" min="0" max="1" step="0.01" value="1"></div>
+        <div><label class="muted">불투명도</label><input type="range" id="landOpacity" min="0" max="1" step="0.01" value="1"></div>
       </div>
       <div><label>경계선색</label><input type="color" id="boundaryColor" value="#ffffff"></div>
       <div class="row"><label>나라 경계선 굵기(px)</label><input type="range" id="countryWidth" min="0.5" max="6" step="0.1" value="1.5"></div>
-      <div class="inline"><input type="checkbox" id="countryDashed"><label for="countryDashed">나라 경계선 점선</label></div>
+      <div class="switch"><span>나라 경계선 점선</span><input type="checkbox" id="countryDashed"></div>
       <div class="row" style="margin-top:8px"><label>행정 경계선 굵기(px)</label><input type="range" id="adminWidth" min="0.5" max="6" step="0.1" value="1.0"></div>
-      <div class="inline"><input type="checkbox" id="adminDashed"><label for="adminDashed">행정 경계선 점선</label></div>
+      <div class="switch"><span>행정 경계선 점선</span><input type="checkbox" id="adminDashed"></div>
     </div>
 
     <div class="section">
       <h2>선택 영역 색칠</h2>
       <label>선택 색</label><input type="color" id="selectColor" value="#ffcc33">
-      <div class="inline" style="margin-top:6px"><input type="checkbox" id="selectHalf" checked><label for="selectHalf">반투명</label></div>
+      <div class="switch"><span>반투명</span><input type="checkbox" id="selectHalf" checked></div>
       <div class="two" style="margin-top:8px">
         <button class="btn" id="clearSelection">선택 해제</button>
-        <button class="btn ghost" id="exportSelection">GeoJSON 내보내기</button>
+        <button class="btn ghost" id="exportSelection">선택 이름(JSON)</button>
       </div>
-      <div class="muted small" style="margin-top:6px">* 지도에서 채움 레이어를 클릭해 다중 선택</div>
+      <div class="muted" style="margin-top:6px">* 채움 레이어 클릭으로 다중 선택</div>
     </div>
 
     <div class="section">
       <h2>PNG 저장</h2>
-      <button class="btn" id="savePng">현재 화면 PNG로 저장</button>
-      <div class="muted small" style="margin-top:6px">* 화면 크기 그대로 저장합니다.</div>
+      <button class="btn" id="savePng">현재 화면 PNG 저장</button>
     </div>
 
     <div class="section">
       <h2>상태</h2>
-      <div id="status">라이브러리 로딩 대기 중…</div>
+      <div id="status">준비 전…</div>
     </div>
   </aside>
 
@@ -130,13 +117,26 @@
 
 <script>
 (function(){
+  /* ========= CONFIG: Your tilesets & source-layer names ========= */
+  const TILESETS = {
+    sido:    'mapbox://mmjjpp.25rm7fx4',
+    sigungu: 'mapbox://mmjjpp.b4x5ixng',
+    emd:     'mapbox://mmjjpp.53755csu',
+  };
+  const SOURCE_LAYERS = {
+    sido:    'BND_SIDO_PG-b2cuck',
+    sigungu: 'BND_SIGUNGU_PG-8djgqa',
+    emd:     'BND_ADM_DONG_PG-3p138h',
+  };
+  const FIELDS = { sido:'SIDO_NM', sigungu:'SIGUNGU_NM', emd:'ADM_NM' };
+
+  /* ========= DOM & STATE ========= */
   const els = {
     token: document.getElementById('token'),
     initMap: document.getElementById('initMap'),
     saveToken: document.getElementById('saveToken'),
     geocoderMount: document.getElementById('geocoderMount'),
     status: document.getElementById('status'),
-    libStatus: document.getElementById('libStatus'),
     toast: document.getElementById('toast'),
 
     chkSido: document.getElementById('chkSido'),
@@ -163,45 +163,25 @@
     savePng: document.getElementById('savePng'),
   };
 
-  const STORE = 'kr-map-index';
-  const FILES = { sido:'sido.geojson', sigungu:'sigungu.geojson', emd:'emd.geojson' };
-  const FIELDS = { sido:'SIDO_NM', sigungu:'SIGUNGU_NM', emd:'ADM_NM' };
-
   let map = null;
-  let detected = null;
-  const selection = new Map();
-  let selectionSourceReady = false;
+  let detected = null; // base layers auto-detect
+  const selected = { sido:new Set(), sigungu:new Set(), emd:new Set() };
 
-  function toast(msg){
-    els.toast.textContent = msg;
-    els.toast.style.display = 'block';
-    setTimeout(()=> els.toast.style.display='none', 2200);
-  }
+  /* ========= Helpers ========= */
+  const STORE = 'kr-map-index';
+  function toast(msg){ els.toast.textContent=msg; els.toast.style.display='block'; setTimeout(()=> els.toast.style.display='none', 2000); }
   function setStatus(msg){ els.status.textContent = msg; }
-
   function saveLocal(){ localStorage.setItem(STORE, JSON.stringify({ token: els.token.value.trim() })); }
   function loadLocal(){ try{ const d=JSON.parse(localStorage.getItem(STORE)||'{}'); if(d.token) els.token.value=d.token; }catch{} }
+  function firstSymbolId(){ const layers=map.getStyle()?.layers||[]; const sym=layers.find(l=>l.type==='symbol'); return sym?.id; }
+  function tryPaint(id,prop,val){ try{ map.setPaintProperty(id,prop,val); }catch{} }
+  function tryLayout(id,prop,val){ try{ map.setLayoutProperty(id,prop,val); }catch{} }
 
-  // ✅ 라이브러리 로드 확인 후 버튼 활성화
-  function checkLibReady(){
-    const ok = !!(window.mapboxgl && window.MapboxGeocoder);
-    els.libStatus.textContent = ok ? '라이브러리 로드 완료' : '라이브러리 로딩 실패… 새로고침(Ctrl/Cmd+Shift+R) 해보세요';
-    els.initMap.disabled = !ok;
-  }
-
-  // 최초 로딩 상태 확인 (일부 브라우저는 비동기로 늦게 잡힐 수 있어 반복 체크)
-  let tries = 0;
-  const t = setInterval(()=>{
-    tries++;
-    checkLibReady();
-    if(els.initMap.disabled && tries < 30) return;
-    clearInterval(t);
-  }, 200);
-
-  // 이벤트 바인딩
-  function bindUI(){
+  /* ========= Init ========= */
+  function init(){
+    loadLocal();
     els.initMap.addEventListener('click', createMap);
-    els.saveToken.addEventListener('click', ()=>{ saveLocal(); toast('토큰 저장됨'); });
+    els.saveToken.addEventListener('click', ()=>{ saveLocal(); toast('토큰 저장'); });
 
     els.chkSido.addEventListener('change', ()=> toggleLevel('sido', els.chkSido.checked));
     els.chkSigungu.addEventListener('change', ()=> toggleLevel('sigungu', els.chkSigungu.checked));
@@ -212,18 +192,21 @@
 
     [els.waterColor, els.waterOpacity, els.landColor, els.landOpacity, els.boundaryColor,
      els.countryWidth, els.adminWidth, els.countryDashed, els.adminDashed]
-    .forEach(el => el.addEventListener('input', applyRuntimeColors));
+     .forEach(el => el.addEventListener('input', applyRuntimeColors));
 
-    els.selectColor.addEventListener('input', updateSelectionStyle);
-    els.selectHalf.addEventListener('change', updateSelectionStyle);
-    els.clearSelection.addEventListener('click', clearSelection);
-    els.exportSelection.addEventListener('click', exportSelectionGeoJSON);
+    els.selectColor.addEventListener('input', updateSelectionStyles);
+    els.selectHalf.addEventListener('change', updateSelectionStyles);
+    els.clearSelection.addEventListener('click', ()=>{ ['sido','sigungu','emd'].forEach(k=>selected[k].clear()); updateSelectionFilters(); setStatus('선택 해제됨'); });
+    els.exportSelection.addEventListener('click', ()=>{
+      const out = { sido:[...selected.sido], sigungu:[...selected.sigungu], emd:[...selected.emd] };
+      const blob = new Blob([JSON.stringify(out,null,2)], {type:'application/json'});
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='selection-names.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    });
 
     els.savePng.addEventListener('click', savePNG);
   }
 
   function createMap(){
-    if(!window.mapboxgl){ toast('mapboxgl이 아직 준비되지 않았어요. 새로고침해 주세요.'); return; }
     const token = els.token.value.trim();
     if(!token){ toast('Access Token을 입력하세요.'); return; }
     saveLocal();
@@ -241,26 +224,22 @@
     });
     map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-    // Geocoder
-    if(!window.MapboxGeocoder){ toast('Geocoder 플러그인이 준비되지 않았습니다.'); }
-    else {
-      const geocoder = new MapboxGeocoder({ accessToken: mapboxgl.accessToken, mapboxgl, marker:false, language:'ko,en', placeholder:'주소 또는 키워드 검색…' });
-      els.geocoderMount.innerHTML='';
-      els.geocoderMount.appendChild(geocoder.onAdd(map));
-      geocoder.on('result', e=>{
-        if(e.result?.bbox){ const b=e.result.bbox; map.fitBounds([[b[0],b[1]],[b[2],b[3]]], { padding:60, duration:900 }); }
-        else if(e.result?.center){ map.flyTo({ center:e.result.center, zoom:14 }); }
-      });
-    }
+    const geocoder = new MapboxGeocoder({ accessToken: mapboxgl.accessToken, mapboxgl, marker:false, language:'ko,en', placeholder:'주소 또는 키워드 검색…' });
+    document.getElementById('geocoderMount').innerHTML='';
+    document.getElementById('geocoderMount').appendChild(geocoder.onAdd(map));
+    geocoder.on('result', e=>{
+      if(e.result?.bbox){
+        const b=e.result.bbox; map.fitBounds([[b[0],b[1]],[b[2],b[3]]], { padding:60, duration:900 });
+      }else if(e.result?.center){
+        map.flyTo({ center:e.result.center, zoom:14 });
+      }
+    });
 
     map.on('load', ()=>{
       detected = scanStyleLayers();
-      setStatus('지도 로드됨 — 레벨을 켜서 GeoJSON을 불러오세요.');
       applyRuntimeColors();
       toggleBaseLabels(els.chkBaseLabels.checked);
-
-      ensureSelectionSource();
-      ensureSelectionLayer();
+      setStatus('지도 로드됨 — 타일셋 레벨을 켜세요.');
     });
 
     map.on('style.load', ()=>{
@@ -273,9 +252,8 @@
       if(els.chkSigungu.checked) addLevel('sigungu');
       if(els.chkEmd.checked) addLevel('emd');
 
-      ensureSelectionSource();
-      ensureSelectionLayer();
-      updateSelectionStyle();
+      updateSelectionStyles();
+      updateSelectionFilters();
     });
   }
 
@@ -288,75 +266,85 @@
       if(/water|ocean|sea/.test(id+' '+srcLayer)){ if(['fill','line','background'].includes(l.type)) found.water.push(l.id); }
       if(l.type==='fill' && /land|landcover|landuse|earth|natural/.test(id+' '+srcLayer)){ found.landFill.push(l.id); }
       if(l.type==='line' && /admin|boundary|borders|country/.test(id+' '+srcLayer)){ found.boundary.push(l.id); }
-      if(l.type==='symbol'){ if(!/(^|-)sido-label|sigungu-label|emd-label/.test(id)) found.baseLabelIds.push(l.id); }
+      if(l.type==='symbol'){ found.baseLabelIds.push(l.id); }
     });
     return found;
   }
-  function trySet(layerId, prop, val){ try{ map.setPaintProperty(layerId, prop, val); }catch{} }
-  function tryLayout(layerId, prop, val){ try{ map.setLayoutProperty(layerId, prop, val); }catch{} }
 
   async function toggleLevel(lvl, on){
-    if(!map) return;
     if(on) await addLevel(lvl); else removeLevel(lvl);
-    applyOurLabelsVisibility(); applyRuntimeColors();
+    applyOurLabelsVisibility();
+    applyRuntimeColors();
+    updateSelectionStyles();
+    updateSelectionFilters();
   }
+
   async function addLevel(lvl){
-    const src=`${lvl}-src`, fill=`${lvl}-fill`, line=`${lvl}-line`, label=`${lvl}-label`;
-    if(!map.getSource(src)){ map.addSource(src, { type:'geojson', data: FILES[lvl], promoteId: FIELDS[lvl] }); }
-    if(!map.getLayer(fill)){ map.addLayer({ id:fill, type:'fill', source:src, paint:{ 'fill-color':'#ffffff','fill-opacity':0.03 } }, firstSymbolId()); }
-    if(!map.getLayer(line)){ map.addLayer({ id:line, type:'line', source:src, paint:{ 'line-color': els.boundaryColor.value, 'line-width': parseFloat(els.adminWidth.value), 'line-dasharray': els.adminDashed.checked?[2,2]:[1,0] } }); }
-    if(!map.getLayer(label)){ map.addLayer({ id:label, type:'symbol', source:src, layout:{ 'text-field':['get', FIELDS[lvl]], 'text-size':['interpolate',['linear'],['zoom'],6,9,10,12,14,16] }, paint:{ 'text-color':'#1f2940','text-halo-color':'#fff','text-halo-width':1.2,'text-opacity': els.chkOurLabels.checked?1:0 } }); }
-    bindSelect(fill, lvl);
+    const srcId = `${lvl}-src`;
+    if(!map.getSource(srcId)){
+      map.addSource(srcId, { type:'vector', url: TILESETS[lvl] });
+    }
+    const fillId = `${lvl}-fill`;
+    if(!map.getLayer(fillId)){
+      map.addLayer({
+        id: fillId, type:'fill', source: srcId, 'source-layer': SOURCE_LAYERS[lvl],
+        paint:{ 'fill-color':'#ffffff', 'fill-opacity':0.03 },
+        minzoom: (lvl==='emd'? 9 : lvl==='sigungu'? 6 : 0)
+      }, firstSymbolId());
+      bindSelect(fillId, lvl);
+    }
+    const lineId = `${lvl}-line`;
+    if(!map.getLayer(lineId)){
+      map.addLayer({
+        id: lineId, type:'line', source: srcId, 'source-layer': SOURCE_LAYERS[lvl],
+        paint:{
+          'line-color': els.boundaryColor.value,
+          'line-width': parseFloat(els.adminWidth.value),
+          'line-dasharray': els.adminDashed.checked ? [2,2] : [1,0]
+        },
+        minzoom: (lvl==='emd'? 9 : lvl==='sigungu'? 6 : 0)
+      });
+    }
+    const labelId = `${lvl}-label`;
+    if(!map.getLayer(labelId)){
+      map.addLayer({
+        id: labelId, type:'symbol', source: srcId, 'source-layer': SOURCE_LAYERS[lvl],
+        layout:{
+          'text-field': ['get', FIELDS[lvl]],
+          'text-size': ['interpolate',['linear'],['zoom'],6,10,10,12,14,16],
+          'text-allow-overlap': false
+        },
+        paint:{
+          'text-color':'#1f2940','text-halo-color':'#fff','text-halo-width':1.2,'text-opacity': 1
+        },
+        minzoom: (lvl==='emd'? 10 : lvl==='sigungu'? 7 : 4)
+      });
+    }
+    const selId = `${lvl}-selection`;
+    if(!map.getLayer(selId)){
+      map.addLayer({
+        id: selId, type:'fill', source: srcId, 'source-layer': SOURCE_LAYERS[lvl],
+        paint:{
+          'fill-color': els.selectColor.value,
+          'fill-opacity': els.selectHalf.checked ? 0.5 : 1.0
+        },
+        filter: ['in', ['get', FIELDS[lvl]], ['literal', []]],
+        minzoom: (lvl==='emd'? 9 : lvl==='sigungu'? 6 : 0)
+      }, firstSymbolId());
+    }
     setStatus(`로드됨: ${lvl}`);
   }
+
   function removeLevel(lvl){
-    const fill=`${lvl}-fill`, line=`${lvl}-line`, label=`${lvl}-label`, src=`${lvl}-src`;
-    [fill,line,label].forEach(id=>{ if(map.getLayer(id)) map.removeLayer(id); });
-    if(map.getSource(src)) map.removeSource(src);
-    // 선택에서 해당 레벨 삭제
-    [...selection.keys()].forEach(k=>{ if(k.startsWith(lvl+'|')) selection.delete(k); });
-    refreshSelectionSourceData();
-  }
-  function firstSymbolId(){ const layers=map.getStyle()?.layers||[]; const sym=layers.find(l=>l.type==='symbol'); return sym?sym.id:undefined; }
-
-  function toggleBaseLabels(show){
-    if(!map || !detected) return;
-    detected.baseLabelIds.forEach(id=> tryLayout(id,'visibility', show?'visible':'none'));
-  }
-  function applyRuntimeColors(){
-    if(!map || !detected) return;
-    const sea=els.waterColor.value, land=els.landColor.value, bcol=els.boundaryColor.value;
-    const wOp=parseFloat(els.waterOpacity.value), lOp=parseFloat(els.landOpacity.value);
-    const cW=parseFloat(els.countryWidth.value), aW=parseFloat(els.adminWidth.value);
-    const cDashed=els.countryDashed.checked, aDashed=els.adminDashed.checked;
-
-    if(detected.landBg.length){ detected.landBg.forEach(id=>{ trySet(id,'background-color',land); trySet(id,'background-opacity',lOp); }); }
-    else{ detected.landFill.forEach(id=>{ trySet(id,'fill-color',land); trySet(id,'fill-opacity',lOp); }); }
-
-    detected.water.forEach(id=>{
-      const t = map.getLayer(id)?.type;
-      if(t==='fill'){ trySet(id,'fill-color',sea); trySet(id,'fill-opacity',wOp); }
-      else if(t==='line'){ trySet(id,'line-color',sea); trySet(id,'line-opacity',wOp); }
-      else if(t==='background'){ trySet(id,'background-color',sea); trySet(id,'background-opacity',wOp); }
+    ['selection','label','line','fill'].forEach(sfx=>{
+      const id = `${lvl}-${sfx}`;
+      if(map.getLayer(id)) map.removeLayer(id);
     });
-
-    detected.boundary.forEach(id=>{ trySet(id,'line-color',bcol); trySet(id,'line-width',cW); trySet(id,'line-dasharray', cDashed?[2,2]:[1,0]); });
-
-    ['sido-line','sigungu-line','emd-line'].forEach(id=>{
-      if(map.getLayer(id)){ trySet(id,'line-color',bcol); trySet(id,'line-width',aW); trySet(id,'line-dasharray', aDashed?[2,2]:[1,0]); }
-    });
+    const srcId = `${lvl}-src`;
+    if(map.getSource(srcId)) map.removeSource(srcId);
+    selected[lvl].clear();
   }
-  function applyOurLabelsVisibility(){ const v=els.chkOurLabels.checked?1:0; ['sido-label','sigungu-label','emd-label'].forEach(id=>{ try{ map.setPaintProperty(id,'text-opacity',v); }catch{} }); }
 
-  function ensureSelectionSource(){
-    if(!map.getSource('selection-src')){ map.addSource('selection-src', { type:'geojson', data:{ type:'FeatureCollection', features:[] } }); }
-    selectionSourceReady = true;
-  }
-  function ensureSelectionLayer(){
-    if(!map.getLayer('selection-overlay')){
-      map.addLayer({ id:'selection-overlay', type:'fill', source:'selection-src', paint:{ 'fill-color': els.selectColor.value, 'fill-opacity': els.selectHalf.checked?0.5:1.0 } }, firstSymbolId());
-    }
-  }
   function bindSelect(fillLayerId, lvl){
     if(!map.getLayer(fillLayerId)) return;
     map._bindSel = map._bindSel || {};
@@ -364,43 +352,97 @@
     map.on('click', fillLayerId, (e)=>{
       const feats = map.queryRenderedFeatures(e.point, { layers:[fillLayerId] });
       if(!feats.length) return;
-      const f=feats[0]; const name=f.properties?.[FIELDS[lvl]]; if(!name) return;
-      const key=`${lvl}|${name}`;
-      if(selection.has(key)) selection.delete(key); else selection.set(key, JSON.parse(JSON.stringify(f)));
-      refreshSelectionSourceData();
-      setStatus(`선택 개수: ${selection.size}`);
+      const name = feats[0].properties?.[FIELDS[lvl]];
+      if(!name) return;
+      if(selected[lvl].has(name)) selected[lvl].delete(name); else selected[lvl].add(name);
+      updateSelectionFilters();
+      setStatus(`선택: 시도 ${selected.sido.size} · 시군구 ${selected.sigungu.size} · 읍면동 ${selected.emd.size}`);
     });
     map.on('mouseenter', fillLayerId, ()=> map.getCanvas().style.cursor='pointer');
     map.on('mouseleave', fillLayerId, ()=> map.getCanvas().style.cursor='');
     map._bindSel[fillLayerId] = true;
   }
-  function refreshSelectionSourceData(){
-    if(!selectionSourceReady) return;
-    const feats = Array.from(selection.values()).map(ft=>({ type:'Feature', geometry: ft.geometry, properties: ft.properties||{} }));
-    map.getSource('selection-src').setData({ type:'FeatureCollection', features:feats });
+
+  function updateSelectionStyles(){
+    ['sido','sigungu','emd'].forEach(lvl=>{
+      const selId = `${lvl}-selection`;
+      if(map && map.getLayer(selId)){
+        map.setPaintProperty(selId,'fill-color', els.selectColor.value);
+        map.setPaintProperty(selId,'fill-opacity', els.selectHalf.checked ? 0.5 : 1.0);
+      }
+    });
   }
-  function updateSelectionStyle(){
-    if(!map || !map.getLayer('selection-overlay')) return;
-    map.setPaintProperty('selection-overlay','fill-color', els.selectColor.value);
-    map.setPaintProperty('selection-overlay','fill-opacity', els.selectHalf.checked?0.5:1.0);
+
+  function updateSelectionFilters(){
+    ['sido','sigungu','emd'].forEach(lvl=>{
+      const selId = `${lvl}-selection`;
+      if(map && map.getLayer(selId)){
+        map.setFilter(selId, ['in', ['get', FIELDS[lvl]], ['literal', Array.from(selected[lvl])]]);
+      }
+    });
   }
-  function clearSelection(){ selection.clear(); refreshSelectionSourceData(); setStatus('선택 해제됨'); }
-  function exportSelectionGeoJSON(){
-    const data = map.getSource('selection-src')._data || { type:'FeatureCollection', features:[] };
-    const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/geo+json'});
-    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='selection.geojson'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+
+  function toggleBaseLabels(show){
+    if(!map || !detected) return;
+    detected.baseLabelIds.forEach(id=> tryLayout(id,'visibility', show?'visible':'none'));
+  }
+
+  function applyRuntimeColors(){
+    if(!map || !detected) return;
+    const sea=els.waterColor.value, land=els.landColor.value, bcol=els.boundaryColor.value;
+    const wOp=parseFloat(els.waterOpacity.value), lOp=parseFloat(els.landOpacity.value);
+    const cW=parseFloat(els.countryWidth.value), aW=parseFloat(els.adminWidth.value);
+    const cDashed=els.countryDashed.checked, aDashed=els.adminDashed.checked;
+
+    if(detected.landBg.length){ detected.landBg.forEach(id=>{ tryPaint(id,'background-color',land); tryPaint(id,'background-opacity',lOp); }); }
+    else{ detected.landFill.forEach(id=>{ tryPaint(id,'fill-color',land); tryPaint(id,'fill-opacity',lOp); }); }
+
+    detected.water.forEach(id=>{
+      const t = map.getLayer(id)?.type;
+      if(t==='fill'){ tryPaint(id,'fill-color',sea); tryPaint(id,'fill-opacity',wOp); }
+      else if(t==='line'){ tryPaint(id,'line-color',sea); tryPaint(id,'line-opacity',wOp); }
+      else if(t==='background'){ tryPaint(id,'background-color',sea); tryPaint(id,'background-opacity',wOp); }
+    });
+
+    detected.boundary.forEach(id=>{
+      tryPaint(id,'line-color',bcol);
+      tryPaint(id,'line-width',cW);
+      tryPaint(id,'line-dasharray', cDashed ? [2,2] : [1,0]);
+    });
+
+    ['sido','sigungu','emd'].forEach(lvl=>{
+      const id = `${lvl}-line`;
+      if(map.getLayer(id)){
+        tryPaint(id,'line-color',bcol);
+        tryPaint(id,'line-width',aW);
+        tryPaint(id,'line-dasharray', aDashed ? [2,2] : [1,0]);
+      }
+    });
+  }
+
+  function scanStyleLayers(){
+    const found = { water:[], landBg:[], landFill:[], boundary:[], baseLabelIds:[] };
+    const layers = (map.getStyle()?.layers)||[];
+    layers.forEach(l=>{
+      const id=(l.id||'').toLowerCase(); const srcLayer=(l['source-layer']||'').toLowerCase();
+      if(l.type==='background') found.landBg.push(l.id);
+      if(/water|ocean|sea/.test(id+' '+srcLayer)){ if(['fill','line','background'].includes(l.type)) found.water.push(l.id); }
+      if(l.type==='fill' && /land|landcover|landuse|earth|natural/.test(id+' '+srcLayer)){ found.landFill.push(l.id); }
+      if(l.type==='line' && /admin|boundary|borders|country/.test(id+' '+srcLayer)){ found.boundary.push(l.id); }
+      if(l.type==='symbol'){ found.baseLabelIds.push(l.id); }
+    });
+    return found;
   }
 
   function savePNG(){
     if(!map) return;
-    const canvas = map.getCanvas();
-    const a=document.createElement('a'); a.href=canvas.toDataURL('image/png'); a.download='map.png'; a.click();
+    const a=document.createElement('a');
+    a.href = map.getCanvas().toDataURL('image/png');
+    a.download='map.png';
+    a.click();
   }
 
-  // 부팅
-  loadLocal();
-  bindUI();
-  checkLibReady();
+  init();
 })();
 </script>
 </body>
