@@ -97,6 +97,7 @@
         </div>
         <div class="selected-items" id="selectedSigungu"></div>
         <button class="btn btn-small" id="refreshSigungu" style="margin-top:4px">데이터 새로고침</button>
+        <button class="btn btn-small" id="testSigungu" style="margin-top:4px">검색 테스트</button>
       </div>
     </div>
 
@@ -114,6 +115,7 @@
         </div>
         <div class="selected-items" id="selectedEmd"></div>
         <button class="btn btn-small" id="refreshEmd" style="margin-top:4px">데이터 새로고침</button>
+        <button class="btn btn-small" id="testEmd" style="margin-top:4px">검색 테스트</button>
       </div>
     </div>
 
@@ -136,12 +138,31 @@
         <div><label>육지색</label><input type="color" id="landColor" value="#f5f5f5"></div>
         <div><label class="muted">불투명도</label><input type="range" id="landOpacity" min="0" max="1" step="0.01" value="1"></div>
       </div>
-      <div><label>경계선색</label><input type="color" id="boundaryColor" value="#333333"></div>
+      <div><label>국가 경계선색</label><input type="color" id="countryBoundaryColor" value="#000000"></div>
       <div class="row"><label>국가 경계선 굵기(px)</label><input type="range" id="countryWidth" min="0.5" max="6" step="0.1" value="2.0"></div>
       <div class="switch"><span>국가 경계선 점선</span><input type="checkbox" id="countryDashed"></div>
-      <div class="row" style="margin-top:8px"><label>행정 경계선 굵기(px)</label><input type="range" id="adminWidth" min="0.5" max="6" step="0.1" value="1.0"></div>
-      <div class="switch"><span>행정 경계선 점선</span><input type="checkbox" id="adminDashed"></div>
       <div class="switch"><span>강/수로 표시</span><input type="checkbox" id="showRivers"></div>
+    </div>
+
+    <div class="section">
+      <h2>시도 경계선 스타일</h2>
+      <div><label>시도 경계선색</label><input type="color" id="sidoBoundaryColor" value="#333333"></div>
+      <div class="row"><label>시도 경계선 굵기(px)</label><input type="range" id="sidoWidth" min="0.5" max="6" step="0.1" value="1.5"></div>
+      <div class="switch"><span>시도 경계선 점선</span><input type="checkbox" id="sidoDashed"></div>
+    </div>
+
+    <div class="section">
+      <h2>시군구 경계선 스타일</h2>
+      <div><label>시군구 경계선색</label><input type="color" id="sigunguBoundaryColor" value="#666666"></div>
+      <div class="row"><label>시군구 경계선 굵기(px)</label><input type="range" id="sigunguWidth" min="0.5" max="6" step="0.1" value="1.0"></div>
+      <div class="switch"><span>시군구 경계선 점선</span><input type="checkbox" id="sigunguDashed"></div>
+    </div>
+
+    <div class="section">
+      <h2>읍면동 경계선 스타일</h2>
+      <div><label>읍면동 경계선색</label><input type="color" id="emdBoundaryColor" value="#999999"></div>
+      <div class="row"><label>읍면동 경계선 굵기(px)</label><input type="range" id="emdWidth" min="0.5" max="6" step="0.1" value="0.8"></div>
+      <div class="switch"><span>읍면동 경계선 점선</span><input type="checkbox" id="emdDashed"></div>
     </div>
 
     <div class="section">
@@ -201,12 +222,22 @@
     waterOpacity: document.getElementById('waterOpacity'),
     landColor: document.getElementById('landColor'),
     landOpacity: document.getElementById('landOpacity'),
-    boundaryColor: document.getElementById('boundaryColor'),
+    countryBoundaryColor: document.getElementById('countryBoundaryColor'),
     countryWidth: document.getElementById('countryWidth'),
-    adminWidth: document.getElementById('adminWidth'),
     countryDashed: document.getElementById('countryDashed'),
-    adminDashed: document.getElementById('adminDashed'),
     showRivers: document.getElementById('showRivers'),
+    // 시도 경계선
+    sidoBoundaryColor: document.getElementById('sidoBoundaryColor'),
+    sidoWidth: document.getElementById('sidoWidth'),
+    sidoDashed: document.getElementById('sidoDashed'),
+    // 시군구 경계선
+    sigunguBoundaryColor: document.getElementById('sigunguBoundaryColor'),
+    sigunguWidth: document.getElementById('sigunguWidth'),
+    sigunguDashed: document.getElementById('sigunguDashed'),
+    // 읍면동 경계선
+    emdBoundaryColor: document.getElementById('emdBoundaryColor'),
+    emdWidth: document.getElementById('emdWidth'),
+    emdDashed: document.getElementById('emdDashed'),
     clearSelection: document.getElementById('clearSelection'),
     exportSelection: document.getElementById('exportSelection'),
     exportSelectionSvg: document.getElementById('exportSelectionSvg'),
@@ -254,9 +285,15 @@
     els.chkSigungu.addEventListener('change', ()=> toggleLevel('sigungu', els.chkSigungu.checked));
     els.chkEmd.addEventListener('change', ()=> toggleLevel('emd', els.chkEmd.checked));
 
-    [els.waterColor, els.waterOpacity, els.landColor, els.landOpacity, els.boundaryColor,
-     els.countryWidth, els.adminWidth, els.countryDashed, els.adminDashed, els.showRivers]
-     .forEach(el => el.addEventListener('input', applyRuntimeColors));
+    [els.waterColor, els.waterOpacity, els.landColor, els.landOpacity, els.countryBoundaryColor,
+     els.countryWidth, els.countryDashed, els.showRivers,
+     els.sidoBoundaryColor, els.sidoWidth, els.sidoDashed,
+     els.sigunguBoundaryColor, els.sigunguWidth, els.sigunguDashed,
+     els.emdBoundaryColor, els.emdWidth, els.emdDashed]
+     .forEach(el => {
+       el.addEventListener('input', applyRuntimeColors);
+       el.addEventListener('change', applyRuntimeColors);
+     });
 
     // 분리된 색상 컨트롤
     els.sigunguSelectColor.addEventListener('input', () => {
@@ -283,15 +320,56 @@
 
     // 데이터 새로고침 버튼
     document.getElementById('refreshSigungu').addEventListener('click', () => {
+      console.log('Refreshing sigungu data...');
       allItems.sigungu = [];
-      collectItems('sigungu');
-      setStatus('시군구 데이터 새로고침 중...');
+      selectedGeometries.sigungu = [];
+      if (map.getLayer('sigungu-fill')) {
+        collectItems('sigungu');
+        setTimeout(() => setupSelector('sigungu'), 500);
+      } else {
+        setStatus('시군구 레이어를 먼저 활성화하세요');
+      }
     });
     
     document.getElementById('refreshEmd').addEventListener('click', () => {
+      console.log('Refreshing emd data...');
       allItems.emd = [];
-      collectItems('emd');
-      setStatus('읍면동 데이터 새로고침 중...');
+      selectedGeometries.emd = [];
+      if (map.getLayer('emd-fill')) {
+        collectItems('emd');
+        setTimeout(() => setupSelector('emd'), 500);
+      } else {
+        setStatus('읍면동 레이어를 먼저 활성화하세요');
+      }
+    });
+    
+    // 테스트 버튼
+    document.getElementById('testSigungu').addEventListener('click', () => {
+      console.log('Testing sigungu search...');
+      console.log('Available items:', allItems.sigungu.length, allItems.sigungu.slice(0, 10));
+      const searchEl = els.sigunguSearch;
+      const dropdownEl = els.sigunguDropdown;
+      if (searchEl && dropdownEl) {
+        console.log('Elements found, forcing dropdown display');
+        showDropdown(dropdownEl, allItems.sigungu.slice(0, 20), 'sigungu');
+        searchEl.focus();
+      } else {
+        console.error('Search elements not found!');
+      }
+    });
+    
+    document.getElementById('testEmd').addEventListener('click', () => {
+      console.log('Testing emd search...');
+      console.log('Available items:', allItems.emd.length, allItems.emd.slice(0, 10));
+      const searchEl = els.emdSearch;
+      const dropdownEl = els.emdDropdown;
+      if (searchEl && dropdownEl) {
+        console.log('Elements found, forcing dropdown display');
+        showDropdown(dropdownEl, allItems.emd.slice(0, 20), 'emd');
+        searchEl.focus();
+      } else {
+        console.error('Search elements not found!');
+      }
     });
 
     // 선택 UI 설정
@@ -353,11 +431,18 @@
       setupRouteLayer();
       setupSelectionLayers(); // 새로운 선택 레이어 설정
       
-      // 선택 UI 재설정
+      console.log('Map loaded, setting up selectors...');
+      
+      // 선택 UI 설정 - 여러 번 시도
       setTimeout(() => {
         setupSelector('sigungu');
         setupSelector('emd');
       }, 500);
+      
+      setTimeout(() => {
+        setupSelector('sigungu');
+        setupSelector('emd');
+      }, 2000);
       
       // 시도 기본으로 로드
       toggleLevel('sido', true);
@@ -369,6 +454,8 @@
       hideAllLabels();
       setupRouteLayer();
       setupSelectionLayers(); // 스타일 변경 후에도 재설정
+
+      console.log('Map style loaded, resetting selectors...');
 
       // 선택 UI 재설정
       setTimeout(() => {
@@ -401,6 +488,13 @@
           if (allItems[lvl].length === 0) {
             console.log(`Retrying data collection for ${lvl}`);
             collectItems(lvl);
+            // 한 번 더 재시도
+            setTimeout(() => {
+              if (allItems[lvl].length === 0) {
+                console.log(`Final retry for ${lvl}`);
+                collectItems(lvl);
+              }
+            }, 2000);
           }
         }, 3000);
       }, 1500);
@@ -434,9 +528,9 @@
       map.addLayer({
         id: lineId, type:'line', source: srcId, 'source-layer': SOURCE_LAYERS[lvl],
         paint:{
-          'line-color': els.boundaryColor.value,
-          'line-width': parseFloat(els.adminWidth.value),
-          'line-dasharray': els.adminDashed.checked ? [2,2] : [1,0]
+          'line-color': getBoundaryColor(lvl),
+          'line-width': getBoundaryWidth(lvl),
+          'line-dasharray': getBoundaryDashed(lvl) ? [2,2] : [1,0]
         },
         minzoom: (lvl==='emd'? 9 : lvl==='sigungu'? 6 : 0)
       });
@@ -490,14 +584,51 @@
     return 0.5; // sido 기본 투명도
   }
 
+  function getBoundaryColor(lvl) {
+    if (lvl === 'sido') return els.sidoBoundaryColor.value;
+    if (lvl === 'sigungu') return els.sigunguBoundaryColor.value;
+    if (lvl === 'emd') return els.emdBoundaryColor.value;
+    return '#333333'; // 기본색
+  }
+
+  function getBoundaryWidth(lvl) {
+    if (lvl === 'sido') return parseFloat(els.sidoWidth.value);
+    if (lvl === 'sigungu') return parseFloat(els.sigunguWidth.value);
+    if (lvl === 'emd') return parseFloat(els.emdWidth.value);
+    return 1.0; // 기본 굵기
+  }
+
+  function getBoundaryDashed(lvl) {
+    if (lvl === 'sido') return els.sidoDashed.checked;
+    if (lvl === 'sigungu') return els.sigunguDashed.checked;
+    if (lvl === 'emd') return els.emdDashed.checked;
+    return false; // 기본값
+  }
+
   /* ==== 아이템 수집 ==== */
   function collectItems(lvl) {
-    if (!map.getLayer(`${lvl}-fill`)) return;
+    if (!map.getLayer(`${lvl}-fill`)) {
+      console.log(`Layer ${lvl}-fill not found`);
+      return;
+    }
     
     try {
-      const features = map.querySourceFeatures(`${lvl}-src`, {
+      // 먼저 렌더된 feature들로 시도
+      const renderedFeatures = map.queryRenderedFeatures({
+        layers: [`${lvl}-fill`]
+      });
+      
+      console.log(`Rendered features for ${lvl}:`, renderedFeatures.length);
+      
+      // 그 다음 소스 feature들로 시도
+      const sourceFeatures = map.querySourceFeatures(`${lvl}-src`, {
         sourceLayer: SOURCE_LAYERS[lvl]
       });
+      
+      console.log(`Source features for ${lvl}:`, sourceFeatures.length);
+      
+      // 두 방법 모두 시도해서 더 많은 결과가 나오는 것 사용
+      const features = sourceFeatures.length > renderedFeatures.length ? sourceFeatures : renderedFeatures;
       
       const items = new Set();
       features.forEach(feature => {
@@ -514,9 +645,12 @@
       console.log(`${lvl} items collected:`, allItems[lvl].length, allItems[lvl].slice(0, 5));
       setStatus(`${lvl} 아이템 ${allItems[lvl].length}개 수집됨`);
       
-      // 수집 완료 후 드롭다운 업데이트
+      // 수집 완료 후 즉시 selector 재설정
       if (lvl !== 'sido') {
-        updateDropdownIfNeeded(lvl);
+        setTimeout(() => {
+          setupSelector(lvl);
+          updateDropdownIfNeeded(lvl);
+        }, 100);
       }
     } catch (error) {
       console.error(`Error collecting ${lvl} items:`, error);
@@ -529,13 +663,10 @@
     const searchEl = els[`${lvl}Search`];
     const dropdownEl = els[`${lvl}Dropdown`];
     
-    if (searchEl && searchEl === document.activeElement) {
-      // 검색창이 포커스되어 있으면 드롭다운 표시
-      const query = searchEl.value.toLowerCase();
-      const filtered = allItems[lvl].filter(item => 
-        item.toLowerCase().includes(query)
-      );
-      showDropdown(dropdownEl, filtered, lvl);
+    if (searchEl && dropdownEl && allItems[lvl].length > 0) {
+      console.log(`Updating dropdown for ${lvl} with ${allItems[lvl].length} items`);
+      // 기본 상태에서 몇 개 아이템 보여주기
+      showDropdown(dropdownEl, allItems[lvl].slice(0, 20), lvl);
     }
   }
 
