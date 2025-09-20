@@ -181,6 +181,15 @@
     </div>
 
     <div class="section">
+      <h2>디버깅 도구</h2>
+      <div class="two" style="margin-bottom:8px">
+        <button class="btn btn-small" id="forceStyle">스타일 강제 적용</button>
+        <button class="btn btn-small" id="forceSelection">선택 강제 표시</button>
+      </div>
+      <button class="btn btn-small" id="checkLayers">레이어 상태 확인</button>
+    </div>
+
+    <div class="section">
       <h2>내보내기</h2>
       <button class="btn" id="savePng">현재 화면 PNG 저장</button>
     </div>
@@ -372,6 +381,48 @@
       }
     });
 
+    // 디버깅 도구
+    document.getElementById('forceStyle').addEventListener('click', () => {
+      console.log('Forcing style re-application...');
+      applyRuntimeColors();
+      hideAllLabels();
+      toast('스타일이 강제로 재적용되었습니다');
+    });
+
+    document.getElementById('forceSelection').addEventListener('click', () => {
+      console.log('Forcing selection display...');
+      updateSelectionStyles();
+      updateSelectionFilters();
+      updateSelectionDisplay();
+      toast('선택 표시가 강제로 업데이트되었습니다');
+    });
+
+    document.getElementById('checkLayers').addEventListener('click', () => {
+      console.log('=== LAYER STATUS ===');
+      ['sido', 'sigungu', 'emd'].forEach(lvl => {
+        const src = map.getSource(`${lvl}-src`);
+        const fill = map.getLayer(`${lvl}-fill`);
+        const line = map.getLayer(`${lvl}-line`);
+        const selection = map.getLayer(`${lvl}-selection`);
+        const persistent = map.getLayer(`${lvl}-selection-persistent`);
+        
+        console.log(`${lvl}:`, {
+          source: !!src,
+          fill: !!fill,
+          line: !!line,
+          selection: !!selection,
+          persistent: !!persistent,
+          selectedCount: selected[lvl].size,
+          itemsCount: allItems[lvl].length
+        });
+      });
+      
+      const L = map.getStyle()?.layers || [];
+      console.log('Total layers:', L.length);
+      console.log('Our layers:', L.filter(l => l.id.includes('sido') || l.id.includes('sigungu') || l.id.includes('emd')).map(l => l.id));
+      setStatus('레이어 상태가 콘솔에 출력되었습니다');
+    });
+
     // 선택 UI 설정
     setupSelector('sido');
     setupSelector('sigungu');
@@ -426,23 +477,29 @@
     });
 
     map.on('load', ()=>{
-      applyRuntimeColors();
+      console.log('Map loaded, applying initial styling...');
       hideAllLabels();
       setupRouteLayer();
-      setupSelectionLayers(); // 새로운 선택 레이어 설정
+      setupSelectionLayers();
       
-      console.log('Map loaded, setting up selectors...');
-      
-      // 선택 UI 설정 - 여러 번 시도
+      // 스타일 강제 적용
       setTimeout(() => {
-        setupSelector('sigungu');
-        setupSelector('emd');
+        applyRuntimeColors();
+        console.log('Runtime colors applied');
       }, 500);
       
       setTimeout(() => {
+        applyRuntimeColors();
+        console.log('Runtime colors re-applied');
+      }, 2000);
+      
+      console.log('Map loaded, setting up selectors...');
+      
+      // 선택 UI 설정
+      setTimeout(() => {
         setupSelector('sigungu');
         setupSelector('emd');
-      }, 2000);
+      }, 1000);
       
       // 시도 기본으로 로드
       toggleLevel('sido', true);
@@ -450,10 +507,19 @@
     });
 
     map.on('style.load', ()=>{
-      applyRuntimeColors();
+      console.log('Style loaded, reapplying custom styling...');
       hideAllLabels();
       setupRouteLayer();
-      setupSelectionLayers(); // 스타일 변경 후에도 재설정
+      setupSelectionLayers();
+
+      // 스타일 즉시 적용
+      applyRuntimeColors();
+      
+      // 재적용으로 확실히
+      setTimeout(() => {
+        applyRuntimeColors();
+        console.log('Runtime colors re-applied after style load');
+      }, 1000);
 
       console.log('Map style loaded, resetting selectors...');
 
@@ -469,7 +535,7 @@
 
       updateSelectionStyles();
       updateSelectionFilters();
-      updateSelectionDisplay(); // geometry 기반 표시 업데이트
+      updateSelectionDisplay();
     });
 
     // 경로 그리기를 위한 클릭 이벤트
@@ -731,6 +797,7 @@
     }
     
     updateSelectedDisplay(type);
+    updateSelectionFilters();
     updateSelectionDisplay();
     els[`${type}Search`].value = '';
     els[`${type}Dropdown`].style.display = 'none';
@@ -816,13 +883,14 @@
   /* ==== 선택 스타일 및 필터 ==== */
   function updateSelectionStyles(){
     ['sido','sigungu','emd'].forEach(lvl=>{
+      // 기존 tileset 기반 selection 레이어
       const id = `${lvl}-selection`;
       if(map && map.getLayer(id)){
         map.setPaintProperty(id,'fill-color', getSelectionColor(lvl));
         map.setPaintProperty(id,'fill-opacity', getSelectionOpacity(lvl));
       }
       
-      // persistent layer도 업데이트
+      // persistent geometry 기반 레이어
       const persistentId = `${lvl}-selection-persistent`;
       if(map && map.getLayer(persistentId)){
         map.setPaintProperty(persistentId,'fill-color', getSelectionColor(lvl));
@@ -874,32 +942,49 @@
   }
 
   function exportSelectionsSvg() {
+    if (!map) return;
+    
     const canvas = map.getCanvas();
     const width = canvas.width;
     const height = canvas.height;
     
-    let svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">`;
+    let svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}">`;
     
-    // 각 레벨별로 선택된 영역 처리 - GeoJSON 데이터 사용
+    // 배경 추가 (육지색)
+    svg += `<rect width="100%" height="100%" fill="${els.landColor.value}"/>`;
+    
+    let hasSelections = false;
+    
+    // 각 레벨별로 선택된 영역 처리 - 현재 화면에 보이는 것만
     ['sido', 'sigungu', 'emd'].forEach(lvl => {
-      if (selectedGeometries[lvl].length === 0) return;
+      if (selected[lvl].size === 0) return;
+      
+      const selectionLayerId = `${lvl}-selection`;
+      if (!map.getLayer(selectionLayerId)) return;
+      
+      // 현재 화면에 렌더된 선택 영역만 가져오기
+      const features = map.queryRenderedFeatures({
+        layers: [selectionLayerId]
+      });
+      
+      if (features.length === 0) return;
       
       const color = getSelectionColor(lvl);
       const opacity = getSelectionOpacity(lvl);
       
-      selectedGeometries[lvl].forEach(item => {
-        const geometry = item.geometry;
+      features.forEach(feature => {
+        hasSelections = true;
+        const geometry = feature.geometry;
         
         if (geometry.type === 'Polygon') {
-          // 모든 polygon ring 처리 (외부 + 구멍)
-          geometry.coordinates.forEach((ring, ringIndex) => {
+          geometry.coordinates.forEach((ring) => {
             let path = '';
             ring.forEach((coord, i) => {
               const pixel = map.project(coord);
               if (i === 0) {
-                path += `M${pixel.x},${pixel.y}`;
+                path += `M${pixel.x.toFixed(2)},${pixel.y.toFixed(2)}`;
               } else {
-                path += ` L${pixel.x},${pixel.y}`;
+                path += ` L${pixel.x.toFixed(2)},${pixel.y.toFixed(2)}`;
               }
             });
             path += ' Z';
@@ -907,16 +992,15 @@
             svg += `<path d="${path}" fill="${color}" fill-opacity="${opacity}" stroke="none"/>`;
           });
         } else if (geometry.type === 'MultiPolygon') {
-          // MultiPolygon 처리
           geometry.coordinates.forEach(polygon => {
-            polygon.forEach((ring, ringIndex) => {
+            polygon.forEach((ring) => {
               let path = '';
               ring.forEach((coord, i) => {
                 const pixel = map.project(coord);
                 if (i === 0) {
-                  path += `M${pixel.x},${pixel.y}`;
+                  path += `M${pixel.x.toFixed(2)},${pixel.y.toFixed(2)}`;
                 } else {
-                  path += ` L${pixel.x},${pixel.y}`;
+                  path += ` L${pixel.x.toFixed(2)},${pixel.y.toFixed(2)}`;
                 }
               });
               path += ' Z';
@@ -930,8 +1014,8 @@
     
     svg += '</svg>';
     
-    if (svg === `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg"></svg>`) {
-      toast('선택된 영역이 없습니다');
+    if (!hasSelections) {
+      toast('현재 화면에 선택된 영역이 보이지 않습니다');
       return;
     }
     
