@@ -1,241 +1,581 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>한국 지도 — Tilesets + 런타임 스타일 (Fixed)</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Korean Administrative Map</title>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<!-- Mapbox (공식 CDN) -->
-<link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet" />
-<script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
-<link href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.2/mapbox-gl-geocoder.css" rel="stylesheet" />
-<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.2/mapbox-gl-geocoder.min.js"></script>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            display: flex;
+        }
 
-<style>
-  :root{ --bg:#0b0f14; --panel:#11161d; --muted:#9fb0c3; --border:#1f2a36; --text:#e6eef7; }
-  *{box-sizing:border-box}
-  html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:'Noto Sans KR',system-ui,-apple-system,Segoe UI,Roboto,Pretendard,'Apple SD Gothic Neo',Arial,sans-serif}
-  #app{display:grid;grid-template-columns:360px 1fr;height:100%}
-  #panel{background:#11161d;border-right:1px solid var(--border);padding:14px;overflow:auto}
-  #map{position:relative}
-  #mapContainer{width:100%;height:100%}
-  h1{font-size:18px;margin:0 0 8px}
-  h2{font-size:13px;margin:10px 0;color:var(--muted);font-weight:700;letter-spacing:.4px}
-  label{display:block;font-size:13px;margin:8px 0 4px}
-  input[type="text"]{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:10px;background:#0c1218;color:#e6eef7}
-  input[type="color"]{width:100%;height:38px;border:1px solid var(--border);border-radius:10px;background:#0c1218}
-  input[type="range"]{width:100%}
-  .row{display:grid;grid-template-columns:1fr 110px;gap:10px;align-items:center}
-  .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .btn{background:#13202c;border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:10px;cursor:pointer;font-weight:600;font-size:12px}
-  .btn:hover{background:#0f1a24}
-  .btn-small{padding:6px 8px;font-size:11px}
-  .ghost{background:transparent}
-  .section{background:#0c1218;border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px}
-  .switch{display:flex;align-items:center;justify-content:space-between}
-  .muted{color:var(--muted);font-size:12px}
-  .floating{position:absolute;top:10px;left:10px;z-index:5}
-  .toast{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.7);color:#fff;padding:8px 10px;border-radius:8px;z-index:10;display:none}
+        #map {
+            flex: 1;
+            height: 100vh;
+        }
 
-  .selector-container{margin-bottom:8px}
-  .selector-input{position:relative}
-  .selector-dropdown{position:absolute;top:100%;left:0;right:0;background:#0c1218;border:1px solid var(--border);border-radius:8px;max-height:200px;overflow-y:auto;z-index:20;display:none}
-  .dropdown-item{padding:8px 10px;cursor:pointer;font-size:12px;color:#e6eef7}
-  .dropdown-item:hover{background:#13202c}
-  .selected-items{margin-top:8px}
-  .selected-item{background:#13202c;border:1px solid var(--border);border-radius:6px;padding:4px 8px;margin:2px;display:inline-flex;align-items:center;font-size:11px}
-  .selected-item .remove{margin-left:6px;color:#ff6b6b;cursor:pointer;font-weight:bold}
+        .controls {
+            width: 350px;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            height: 100vh;
+        }
 
-  .route-controls{margin-top:8px}
-  .route-info{font-size:11px;color:var(--muted);margin-top:4px}
+        .control-group {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
 
-  /* Geocoder */
-  .mapboxgl-ctrl-geocoder, .mapboxgl-ctrl-geocoder .suggestions{background:#0c1218 !important; color:#e6eef7 !important;}
-  .mapboxgl-ctrl-geocoder input[type='text']{color:#e6eef7 !important;}
-  .mapboxgl-ctrl-geocoder .mapboxgl-ctrl-geocoder--input::placeholder{color:#9fb0c3 !important;}
-  .mapboxgl-ctrl-geocoder .suggestions > li{color:#e6eef7 !important; background:#0c1218 !important;}
-  .mapboxgl-ctrl-geocoder .suggestions > .active{background:#13202c !important;}
+        .control-group:last-child {
+            border-bottom: none;
+        }
 
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
-</style>
+        .control-group h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .control-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+
+        .control-item label {
+            min-width: 80px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        input[type="color"] {
+            width: 40px;
+            height: 30px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .admin-section {
+            margin-bottom: 20px;
+        }
+
+        .admin-section h4 {
+            margin-bottom: 10px;
+            color: #444;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .selection-area {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .add-btn {
+            padding: 8px 12px;
+            background: #007cbf;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .add-btn:hover {
+            background: #005a8f;
+        }
+
+        .selected-items {
+            max-height: 120px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            padding: 8px;
+            background: #f9f9f9;
+        }
+
+        .selected-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4px 8px;
+            margin-bottom: 4px;
+            background: white;
+            border-radius: 3px;
+            border: 1px solid #ddd;
+            font-size: 13px;
+        }
+
+        .selected-item span {
+            flex: 1;
+            margin-right: 8px;
+        }
+
+        .selected-item input[type="color"] {
+            width: 25px;
+            height: 25px;
+            margin-right: 5px;
+        }
+
+        .remove-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 2px 6px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        .remove-btn:hover {
+            background: #c82333;
+        }
+
+        datalist {
+            max-height: 200px;
+        }
+
+        .width-display {
+            margin-left: 10px;
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
 </head>
 <body>
-<div id="app">
-  <aside id="panel">
-    <h1>한국 지도 앱 — Tilesets Vector</h1>
-
-    <div class="section">
-      <label>지도 상태</label>
-      <div id="status">지도 로딩 중...</div>
-    </div>
-
-    <div class="section">
-      <h2>행정구역 레벨 (타일셋)</h2>
-      <div class="switch"><span>시도</span><input type="checkbox" id="chkSido" checked></div>
-      <div class="switch"><span>시군구</span><input type="checkbox" id="chkSigungu"></div>
-      <div class="switch"><span>읍면동</span><input type="checkbox" id="chkEmd"></div>
-      <div class="muted" style="margin-top:6px">* 켜면 해당 타일셋 레이어 추가, 끄면 제거</div>
-    </div>
-
-    <div class="section">
-      <h2>시군구 선택</h2>
-      <label>시군구 선택 색</label>
-      <input type="color" id="sigunguSelectColor" value="#ffcc33">
-      <div class="selector-container" style="margin-top:8px">
-        <div class="selector-input">
-          <input type="text" id="sigunguSearch" placeholder="시군구 검색..." />
-          <div id="sigunguDropdown" class="selector-dropdown"></div>
+    <div class="controls">
+        <h2 style="margin-bottom: 25px; color: #333;">Korean Administrative Map</h2>
+        
+        <!-- Map Style Controls -->
+        <div class="control-group">
+            <h3>Map Style</h3>
+            <div class="control-item">
+                <label>Ocean:</label>
+                <input type="color" id="oceanColor" value="#a6cee3">
+            </div>
+            <div class="control-item">
+                <label>Land:</label>
+                <input type="color" id="landColor" value="#f0f0f0">
+            </div>
         </div>
-        <div class="selected-items" id="selectedSigungu"></div>
-        <button class="btn btn-small" id="refreshSigungu" style="margin-top:6px">데이터 새로고침</button>
-        <button class="btn btn-small" id="testSigungu" style="margin-top:6px">검색 테스트</button>
-      </div>
-    </div>
 
-    <div class="section">
-      <h2>읍면동 선택</h2>
-      <label>읍면동 선택 색</label>
-      <input type="color" id="emdSelectColor" value="#33ccff">
-      <div class="selector-container" style="margin-top:8px">
-        <div class="selector-input">
-          <input type="text" id="emdSearch" placeholder="읍면동 검색..." />
-          <div id="emdDropdown" class="selector-dropdown"></div>
+        <!-- Boundary Controls -->
+        <div class="control-group">
+            <h3>Boundaries</h3>
+            <div class="control-item">
+                <label>Color:</label>
+                <input type="color" id="boundaryColor" value="#333333">
+            </div>
+            <div class="control-item">
+                <label>Width:</label>
+                <input type="range" id="boundaryWidth" min="0.5" max="5" step="0.5" value="1">
+                <span class="width-display" id="widthDisplay">1px</span>
+            </div>
+            <div class="control-item">
+                <label>Dashed:</label>
+                <input type="checkbox" id="dashedBoundary">
+            </div>
         </div>
-        <div class="selected-items" id="selectedEmd"></div>
-        <button class="btn btn-small" id="refreshEmd" style="margin-top:6px">데이터 새로고침</button>
-        <button class="btn btn-small" id="testEmd" style="margin-top:6px">검색 테스트</button>
-      </div>
+
+        <!-- Administrative Divisions -->
+        <div class="control-group">
+            <h3>Administrative Divisions</h3>
+            
+            <!-- 시도 Section -->
+            <div class="admin-section">
+                <h4>시도 (Provinces)</h4>
+                <div class="selection-area">
+                    <input type="text" id="sidoInput" list="sidoList" placeholder="Select 시도...">
+                    <input type="color" id="sidoColor" value="#ff6b6b">
+                    <button class="add-btn" onclick="addSelection('sido')">Add</button>
+                </div>
+                <datalist id="sidoList"></datalist>
+                <div class="selected-items" id="sidoSelected"></div>
+            </div>
+
+            <!-- 시군구 Section -->
+            <div class="admin-section">
+                <h4>시군구 (Cities/Counties)</h4>
+                <div class="selection-area">
+                    <input type="text" id="sigunguInput" list="sigunguList" placeholder="Select 시군구...">
+                    <input type="color" id="sigunguColor" value="#4ecdc4">
+                    <button class="add-btn" onclick="addSelection('sigungu')">Add</button>
+                </div>
+                <datalist id="sigunguList"></datalist>
+                <div class="selected-items" id="sigunguSelected"></div>
+            </div>
+
+            <!-- 읍면동 Section -->
+            <div class="admin-section">
+                <h4>읍면동 (Towns/Neighborhoods)</h4>
+                <div class="selection-area">
+                    <input type="text" id="eubmyeondongInput" list="eubmyeondongList" placeholder="Select 읍면동...">
+                    <input type="color" id="eubmyeondongColor" value="#45b7d1">
+                    <button class="add-btn" onclick="addSelection('eubmyeondong')">Add</button>
+                </div>
+                <datalist id="eubmyeondongList"></datalist>
+                <div class="selected-items" id="eubmyeondongSelected"></div>
+            </div>
+        </div>
     </div>
 
-    <div class="section">
-      <h2>선택 영역 관리</h2>
-      <div class="two" style="margin-bottom:8px">
-        <button class="btn" id="clearSelection">모든 선택 해제</button>
-        <button class="btn ghost" id="exportSelection">선택 이름(JSON)</button>
-      </div>
-      <button class="btn" id="exportSelectionSvg">선택 영역 SVG 저장</button>
-    </div>
+    <div id="map"></div>
 
-    <div class="section">
-      <h2>런타임 스타일</h2>
-      <div class="row">
-        <div><label>바다색</label><input type="color" id="waterColor" value="#0f3564"></div>
-        <div><label class="muted">불투명도</label><input type="range" id="waterOpacity" min="0" max="1" step="0.01" value="1"></div>
-      </div>
-      <div class="row">
-        <div><label>육지색</label><input type="color" id="landColor" value="#f5f5f5"></div>
-        <div><label class="muted">불투명도</label><input type="range" id="landOpacity" min="0" max="1" step="0.01" value="1"></div>
-      </div>
-      <div><label>국가 경계선색</label><input type="color" id="countryBoundaryColor" value="#000000"></div>
-      <div class="row"><label>국가 경계선 굵기(px)</label><input type="range" id="countryWidth" min="0.5" max="6" step="0.1" value="2.0"></div>
-      <div class="switch"><span>국가 경계선 점선</span><input type="checkbox" id="countryDashed"></div>
-      <div class="switch"><span>강/호수(내륙 수체) 표시</span><input type="checkbox" id="showRivers"></div>
-      <div class="muted" style="margin-top:6px">* 바다/대양은 항상 표시됩니다 (내륙 수체만 토글).</div>
-    </div>
+    <script>
+        // Initialize Mapbox
+        mapboxgl.accessToken = 'pk.eyJ1IjoibW1qanBwIiwiYSI6ImNtZmZnM3RwODBoYnEya3B6bnB3NW5zcHQifQ.6UON_8x8X84bxsCrURuggA';
 
-    <div class="section">
-      <h2>시도 경계선 스타일</h2>
-      <div><label>시도 경계선색</label><input type="color" id="sidoBoundaryColor" value="#333333"></div>
-      <div class="row"><label>시도 경계선 굵기(px)</label><input type="range" id="sidoWidth" min="0.5" max="6" step="0.1" value="1.5"></div>
-      <div class="switch"><span>시도 경계선 점선</span><input type="checkbox" id="sidoDashed"></div>
-    </div>
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/light-v11',
+            center: [127.7669, 35.9078],
+            zoom: 6
+        });
 
-    <div class="section">
-      <h2>시군구 경계선 스타일</h2>
-      <div><label>시군구 경계선색</label><input type="color" id="sigunguBoundaryColor" value="#666666"></div>
-      <div class="row"><label>시군구 경계선 굵기(px)</label><input type="range" id="sigunguWidth" min="0.5" max="6" step="0.1" value="1.0"></div>
-      <div class="switch"><span>시군구 경계선 점선</span><input type="checkbox" id="sigunguDashed"></div>
-    </div>
+        // Administrative data storage
+        const adminData = {
+            sido: { 
+                tileset: 'mmjjpp.25rm7fx4',
+                field: 'SIDO_NM',
+                names: [],
+                selected: new Map()
+            },
+            sigungu: { 
+                tileset: 'mmjjpp.b4x5ixng',
+                field: 'SIGUNGU_NM',
+                names: [],
+                selected: new Map()
+            },
+            eubmyeondong: { 
+                tileset: 'mmjjpp.53755csu',
+                field: 'ADM_NM',
+                names: [],
+                selected: new Map()
+            }
+        };
 
-    <div class="section">
-      <h2>읍면동 경계선 스타일</h2>
-      <div><label>읍면동 경계선색</label><input type="color" id="emdBoundaryColor" value="#999999"></div>
-      <div class="row"><label>읍면동 경계선 굵기(px)</label><input type="range" id="emdWidth" min="0.5" max="6" step="0.1" value="0.8"></div>
-      <div class="switch"><span>읍면동 경계선 점선</span><input type="checkbox" id="emdDashed"></div>
-    </div>
+        // Initialize map
+        map.on('load', () => {
+            // Add sources
+            map.addSource('sido-source', {
+                type: 'vector',
+                url: `mapbox://${adminData.sido.tileset}`
+            });
 
-    <div class="section">
-      <h2>경로 그리기</h2>
-      <div class="two">
-        <button class="btn" id="startRoute">경로 그리기 시작</button>
-        <button class="btn" id="stopRoute">그리기 중지</button>
-      </div>
-      <div class="two" style="margin-top:6px">
-        <button class="btn ghost" id="clearRoute">경로 지우기</button>
-        <button class="btn ghost" id="exportRouteSvg">경로 SVG 저장</button>
-      </div>
-      <div class="route-info" id="routeInfo">경로 점 개수: 0</div>
-    </div>
+            map.addSource('sigungu-source', {
+                type: 'vector',
+                url: `mapbox://${adminData.sigungu.tileset}`
+            });
 
-    <div class="section">
-      <h2>디버깅 도구</h2>
-      <div class="two" style="margin-bottom:8px">
-        <button class="btn btn-small" id="forceStyle">스타일 강제 적용</button>
-        <button class="btn btn-small" id="forceSelection">선택 강제 표시</button>
-      </div>
-      <button class="btn btn-small" id="checkLayers">레이어 상태 확인</button>
-    </div>
+            map.addSource('eubmyeondong-source', {
+                type: 'vector',
+                url: `mapbox://${adminData.eubmyeondong.tileset}`
+            });
 
-    <div class="section">
-      <h2>내보내기</h2>
-      <button class="btn" id="savePng">현재 화면 PNG 저장</button>
-    </div>
-  </aside>
+            // Add boundary layers
+            addBoundaryLayers();
 
-  <main id="map">
-    <div id="geocoderMount" class="floating"></div>
-    <div id="mapContainer"></div>
-    <div id="toast" class="toast"></div>
-  </main>
-</div>
+            // Add fill layers for selected regions
+            addFillLayers();
 
-<script>
-(function(){
-  /* ==== CONFIG ==== */
-  const MAPBOX_TOKEN = 'pk.eyJ1IjoibW1qanBwIiwiYSI6ImNtZmZnM3RwODBoYnEya3B6bnB3NW5zcHQifQ.6UON_8x8X84bxsCrURuggA';
+            // Load administrative names
+            loadAdminNames();
 
-  const TILESETS = {
-    sido:    'mapbox://mmjjpp.25rm7fx4',
-    sigungu: 'mapbox://mmjjpp.b4x5ixng',
-    emd:     'mapbox://mmjjpp.53755csu',
-  };
-  const SOURCE_LAYERS = {
-    sido:    'BND_SIDO_PG-b2cuck',
-    sigungu: 'BND_SIGUNGU_PG-8djgqa',
-    emd:     'BND_ADM_DONG_PG-3p138h',
-  };
-  const FIELDS = { sido:'SIDO_NM', sigungu:'SIGUNGU_NM', emd:'ADM_NM' };
+            // Update map style
+            updateMapStyle();
+        });
 
-  /* ==== DOM ==== */
-  const els = {
-    status: document.getElementById('status'),
-    toast: document.getElementById('toast'),
-    geocoderMount: document.getElementById('geocoderMount'),
-    chkSido: document.getElementById('chkSido'),
-    chkSigungu: document.getElementById('chkSigungu'),
-    chkEmd: document.getElementById('chkEmd'),
-    waterColor: document.getElementById('waterColor'),
-    waterOpacity: document.getElementById('waterOpacity'),
-    landColor: document.getElementById('landColor'),
-    landOpacity: document.getElementById('landOpacity'),
-    countryBoundaryColor: document.getElementById('countryBoundaryColor'),
-    countryWidth: document.getElementById('countryWidth'),
-    countryDashed: document.getElementById('countryDashed'),
-    showRivers: document.getElementById('showRivers'),
-    // per-level boundary controls
-    sidoBoundaryColor: document.getElementById('sidoBoundaryColor'),
-    sidoWidth: document.getElementById('sidoWidth'),
-    sidoDashed: document.getElementById('sidoDashed'),
-    sigunguBoundaryColor: document.getElementById('sigunguBoundaryColor'),
-    sigunguWidth: document.getElementById('sigunguWidth'),
-    sigunguDashed: document.getElementById('sigunguDashed'),
-    emdBoundaryColor: document.getElementById('emdBoundaryColor'),
-    emdWidth: document.getElementById('emdWidth'),
-    emdDashed: document.getElementById('emdDashed'),
-    clearSelection: document.getElementById('clearSelection'),
-    exportSelection: document.getElementById('exportSelection'),
-    exportSelectionSvg: document.getElementById('exportSelectionSvg'),
-    savePng: document.getElementById('savePng'),
-    // selectors
-    sigunguSearch: document.getElementById('sigunguSearch'),
-    sigunguDropdown: document.getElementById('sigunguDropdown'),
+        function addBoundaryLayers() {
+            // 시도 boundaries
+            map.addLayer({
+                id: 'sido-boundaries',
+                type: 'line',
+                source: 'sido-source',
+                'source-layer': 'BND_SIDO_PG-b2cuck',
+                paint: {
+                    'line-color': '#333333',
+                    'line-width': 1
+                }
+            });
+
+            // 시군구 boundaries
+            map.addLayer({
+                id: 'sigungu-boundaries',
+                type: 'line',
+                source: 'sigungu-source',
+                'source-layer': 'BND_SIGUNGU_PG-8djgqa',
+                paint: {
+                    'line-color': '#333333',
+                    'line-width': 0.5
+                }
+            });
+
+            // 읍면동 boundaries
+            map.addLayer({
+                id: 'eubmyeondong-boundaries',
+                type: 'line',
+                source: 'eubmyeondong-source',
+                'source-layer': 'BND_ADM_DONG_PG-3p138h',
+                paint: {
+                    'line-color': '#333333',
+                    'line-width': 0.3
+                }
+            });
+        }
+
+        function addFillLayers() {
+            // 시도 fills
+            map.addLayer({
+                id: 'sido-fill',
+                type: 'fill',
+                source: 'sido-source',
+                'source-layer': 'BND_SIDO_PG-b2cuck',
+                paint: {
+                    'fill-color': [
+                        'case',
+                        ['has', ['get', 'SIDO_NM'], ['literal', {}]],
+                        ['get', ['get', 'SIDO_NM'], ['literal', {}]],
+                        'rgba(0,0,0,0)'
+                    ],
+                    'fill-opacity': 0.7
+                }
+            }, 'sido-boundaries');
+
+            // 시군구 fills
+            map.addLayer({
+                id: 'sigungu-fill',
+                type: 'fill',
+                source: 'sigungu-source',
+                'source-layer': 'BND_SIGUNGU_PG-8djgqa',
+                paint: {
+                    'fill-color': [
+                        'case',
+                        ['has', ['get', 'SIGUNGU_NM'], ['literal', {}]],
+                        ['get', ['get', 'SIGUNGU_NM'], ['literal', {}]],
+                        'rgba(0,0,0,0)'
+                    ],
+                    'fill-opacity': 0.7
+                }
+            }, 'sigungu-boundaries');
+
+            // 읍면동 fills
+            map.addLayer({
+                id: 'eubmyeondong-fill',
+                type: 'fill',
+                source: 'eubmyeondong-source',
+                'source-layer': 'BND_ADM_DONG_PG-3p138h',
+                paint: {
+                    'fill-color': [
+                        'case',
+                        ['has', ['get', 'ADM_NM'], ['literal', {}]],
+                        ['get', ['get', 'ADM_NM'], ['literal', {}]],
+                        'rgba(0,0,0,0)'
+                    ],
+                    'fill-opacity': 0.7
+                }
+            }, 'eubmyeondong-boundaries');
+        }
+
+        async function loadAdminNames() {
+            // This would typically involve querying the tilesets
+            // For now, we'll add some sample data
+            // In a real implementation, you would query the tileset features
+            
+            // Sample data - replace with actual tileset queries
+            adminData.sido.names = [
+                '서울특별시', '부산광역시', '대구광역시', '인천광역시', '광주광역시',
+                '대전광역시', '울산광역시', '세종특별자치시', '경기도', '강원도',
+                '충청북도', '충청남도', '전라북도', '전라남도', '경상북도', '경상남도', '제주특별자치도'
+            ];
+
+            // Populate datalists
+            populateDatalist('sidoList', adminData.sido.names);
+            
+            // Note: For real implementation, you would need to query the actual tilesets
+            // to get all unique values for each administrative level
+        }
+
+        function populateDatalist(listId, names) {
+            const datalist = document.getElementById(listId);
+            datalist.innerHTML = '';
+            names.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                datalist.appendChild(option);
+            });
+        }
+
+        // Control event listeners
+        document.getElementById('oceanColor').addEventListener('change', updateMapStyle);
+        document.getElementById('landColor').addEventListener('change', updateMapStyle);
+        document.getElementById('boundaryColor').addEventListener('change', updateBoundaryStyle);
+        document.getElementById('boundaryWidth').addEventListener('input', updateBoundaryStyle);
+        document.getElementById('dashedBoundary').addEventListener('change', updateBoundaryStyle);
+
+        // Width display update
+        document.getElementById('boundaryWidth').addEventListener('input', (e) => {
+            document.getElementById('widthDisplay').textContent = e.target.value + 'px';
+        });
+
+        function updateMapStyle() {
+            const oceanColor = document.getElementById('oceanColor').value;
+            const landColor = document.getElementById('landColor').value;
+            
+            map.setPaintProperty('water', 'fill-color', oceanColor);
+            map.setPaintProperty('land', 'fill-color', landColor);
+        }
+
+        function updateBoundaryStyle() {
+            const boundaryColor = document.getElementById('boundaryColor').value;
+            const boundaryWidth = parseFloat(document.getElementById('boundaryWidth').value);
+            const isDashed = document.getElementById('dashedBoundary').checked;
+            
+            const dashArray = isDashed ? [2, 2] : [1, 0];
+            
+            ['sido-boundaries', 'sigungu-boundaries', 'eubmyeondong-boundaries'].forEach(layerId => {
+                map.setPaintProperty(layerId, 'line-color', boundaryColor);
+                map.setPaintProperty(layerId, 'line-width', boundaryWidth);
+                map.setPaintProperty(layerId, 'line-dasharray', dashArray);
+            });
+        }
+
+        function addSelection(type) {
+            const input = document.getElementById(`${type}Input`);
+            const color = document.getElementById(`${type}Color`).value;
+            const name = input.value.trim();
+            
+            if (!name) return;
+            
+            // Add to selected map
+            adminData[type].selected.set(name, color);
+            
+            // Update display
+            updateSelectedDisplay(type);
+            
+            // Update map
+            updateFillLayer(type);
+            
+            // Clear input
+            input.value = '';
+        }
+
+        function removeSelection(type, name) {
+            adminData[type].selected.delete(name);
+            updateSelectedDisplay(type);
+            updateFillLayer(type);
+        }
+
+        function updateSelectedDisplay(type) {
+            const container = document.getElementById(`${type}Selected`);
+            container.innerHTML = '';
+            
+            adminData[type].selected.forEach((color, name) => {
+                const item = document.createElement('div');
+                item.className = 'selected-item';
+                item.innerHTML = `
+                    <span>${name}</span>
+                    <input type="color" value="${color}" onchange="updateSelectionColor('${type}', '${name}', this.value)">
+                    <button class="remove-btn" onclick="removeSelection('${type}', '${name}')">×</button>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function updateSelectionColor(type, name, color) {
+            adminData[type].selected.set(name, color);
+            updateFillLayer(type);
+        }
+
+        function updateFillLayer(type) {
+            const colorMap = {};
+            adminData[type].selected.forEach((color, name) => {
+                colorMap[name] = color;
+            });
+            
+            map.setPaintProperty(`${type}-fill`, 'fill-color', [
+                'case',
+                ['has', ['get', adminData[type].field], ['literal', colorMap]],
+                ['get', ['get', adminData[type].field], ['literal', colorMap]],
+                'rgba(0,0,0,0)'
+            ]);
+        }
+
+        // Add click handlers for interactive selection
+        map.on('click', 'sido-fill', (e) => {
+            const name = e.features[0].properties.SIDO_NM;
+            if (name && !adminData.sido.selected.has(name)) {
+                document.getElementById('sidoInput').value = name;
+            }
+        });
+
+        map.on('click', 'sigungu-fill', (e) => {
+            const name = e.features[0].properties.SIGUNGU_NM;
+            if (name && !adminData.sigungu.selected.has(name)) {
+                document.getElementById('sigunguInput').value = name;
+            }
+        });
+
+        map.on('click', 'eubmyeondong-fill', (e) => {
+            const name = e.features[0].properties.ADM_NM;
+            if (name && !adminData.eubmyeondong.selected.has(name)) {
+                document.getElementById('eubmyeondongInput').value = name;
+            }
+        });
+
+        // Add cursor style for clickable areas
+        map.on('mouseenter', 'sido-fill', () => map.getCanvas().style.cursor = 'pointer');
+        map.on('mouseleave', 'sido-fill', () => map.getCanvas().style.cursor = '');
+        map.on('mouseenter', 'sigungu-fill', () => map.getCanvas().style.cursor = 'pointer');
+        map.on('mouseleave', 'sigungu-fill', () => map.getCanvas().style.cursor = '');
+        map.on('mouseenter', 'eubmyeondong-fill', () => map.getCanvas().style.cursor = 'pointer');
+        map.on('mouseleave', 'eubmyeondong-fill', () => map.getCanvas().style.cursor = '');
+    </script>
+</body>
+</html>
