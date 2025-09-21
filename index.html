@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Korean Administrative Map</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗺️</text></svg>">
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
     <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet">
     <style>
@@ -326,10 +327,9 @@
             style: {
                 version: 8,
                 sources: {
-                    'mapbox-satellite': {
-                        type: 'raster',
-                        url: 'mapbox://mapbox.satellite',
-                        tileSize: 512
+                    'mapbox-streets': {
+                        type: 'vector',
+                        url: 'mapbox://mapbox.mapbox-streets-v8'
                     }
                 },
                 layers: [
@@ -337,7 +337,26 @@
                         id: 'background',
                         type: 'background',
                         paint: {
-                            'background-color': '#f0f0f0'
+                            'background-color': '#a6cee3'
+                        }
+                    },
+                    {
+                        id: 'land',
+                        type: 'fill',
+                        source: 'mapbox-streets',
+                        'source-layer': 'landuse',
+                        filter: ['==', 'class', 'land'],
+                        paint: {
+                            'fill-color': '#f0f0f0'
+                        }
+                    },
+                    {
+                        id: 'landcover',
+                        type: 'fill',
+                        source: 'mapbox-streets',
+                        'source-layer': 'landcover',
+                        paint: {
+                            'fill-color': '#f0f0f0'
                         }
                     }
                 ]
