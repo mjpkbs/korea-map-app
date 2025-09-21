@@ -247,6 +247,14 @@
                 <label>Land:</label>
                 <input type="color" id="landColor" value="#f0f0f0">
             </div>
+            <div class="control-item">
+                <label>한국만 보이기:</label>
+                <input type="checkbox" id="showKoreaOnly" checked>
+            </div>
+            <div class="control-item">
+                <label>Waterways:</label>
+                <input type="checkbox" id="showWaterways">
+            </div>
         </div>
 
         <!-- Boundary Controls -->
@@ -376,6 +384,10 @@
                     'country-boundaries': {
                         type: 'vector',
                         url: 'mapbox://mapbox.country-boundaries-v1'
+                    },
+                    'mapbox-streets': {
+                        type: 'vector',
+                        url: 'mapbox://mapbox.mapbox-streets-v8'
                     }
                 },
                 layers: [
@@ -394,6 +406,26 @@
                         filter: ['==', 'iso_3166_1', 'KR'],
                         paint: {
                             'fill-color': '#f0f0f0'
+                        }
+                    },
+                    {
+                        id: 'waterways',
+                        type: 'line',
+                        source: 'mapbox-streets',
+                        'source-layer': 'waterway',
+                        layout: {
+                            'visibility': 'none'
+                        },
+                        paint: {
+                            'line-color': '#4a90e2',
+                            'line-width': [
+                                'interpolate',
+                                ['linear'],
+                                ['zoom'],
+                                5, 0.5,
+                                10, 2,
+                                15, 4
+                            ]
                         }
                     }
                 ]
@@ -456,20 +488,25 @@
         });
 
         function addBoundaryLayers() {
-            // 시도 boundaries (always visible)
+            // 시도 boundaries (always visible, all zoom levels)
             map.addLayer({
                 id: 'sido-boundaries',
                 type: 'line',
                 source: 'sido-source',
                 'source-layer': 'BND_SIDO_PG-b2cuck',
+                layout: {
+                    'visibility': 'visible'
+                },
                 paint: {
                     'line-color': '#333333',
                     'line-width': 2,
                     'line-dasharray': [1, 0]
-                }
+                },
+                minzoom: 0,
+                maxzoom: 24
             });
 
-            // 시군구 boundaries (initially hidden)
+            // 시군구 boundaries (initially hidden, all zoom levels when visible)
             map.addLayer({
                 id: 'sigungu-boundaries',
                 type: 'line',
@@ -482,10 +519,12 @@
                     'line-color': '#666666',
                     'line-width': 1,
                     'line-dasharray': [1, 0]
-                }
+                },
+                minzoom: 0,
+                maxzoom: 24
             });
 
-            // 읍면동 boundaries (initially hidden)
+            // 읍면동 boundaries (initially hidden, all zoom levels when visible)
             map.addLayer({
                 id: 'eubmyeondong-boundaries',
                 type: 'line',
@@ -498,7 +537,9 @@
                     'line-color': '#999999',
                     'line-width': 0.5,
                     'line-dasharray': [1, 0]
-                }
+                },
+                minzoom: 0,
+                maxzoom: 24
             });
         }
 
@@ -751,6 +792,8 @@
         // Control event listeners
         document.getElementById('oceanColor').addEventListener('change', updateMapStyle);
         document.getElementById('landColor').addEventListener('change', updateMapStyle);
+        document.getElementById('showKoreaOnly').addEventListener('change', toggleKoreaOnly);
+        document.getElementById('showWaterways').addEventListener('change', toggleWaterways);
 
         // 시도 boundary controls
         document.getElementById('sidoBoundaryColor').addEventListener('change', () => updateBoundaryStyle('sido'));
@@ -791,6 +834,24 @@
             if (map.getLayer('land')) {
                 map.setPaintProperty('land', 'fill-color', landColor);
             }
+        }
+
+        function toggleKoreaOnly() {
+            const showKoreaOnly = document.getElementById('showKoreaOnly').checked;
+            
+            if (showKoreaOnly) {
+                // Show only Korea
+                map.setFilter('land', ['==', 'iso_3166_1', 'KR']);
+            } else {
+                // Show all countries
+                map.setFilter('land', null);
+            }
+        }
+
+        function toggleWaterways() {
+            const showWaterways = document.getElementById('showWaterways').checked;
+            
+            map.setLayoutProperty('waterways', 'visibility', showWaterways ? 'visible' : 'none');
         }
 
         function updateBoundaryStyle(type) {
