@@ -373,9 +373,9 @@
             style: {
                 version: 8,
                 sources: {
-                    'mapbox-streets': {
+                    'country-boundaries': {
                         type: 'vector',
-                        url: 'mapbox://mapbox.mapbox-streets-v8'
+                        url: 'mapbox://mapbox.country-boundaries-v1'
                     }
                 },
                 layers: [
@@ -389,8 +389,9 @@
                     {
                         id: 'land',
                         type: 'fill',
-                        source: 'mapbox-streets',
+                        source: 'country-boundaries',
                         'source-layer': 'country_boundaries',
+                        filter: ['==', 'iso_3166_1', 'KR'],
                         paint: {
                             'fill-color': '#f0f0f0'
                         }
