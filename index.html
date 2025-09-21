@@ -22,7 +22,7 @@
   h1{font-size:18px;margin:0 0 8px}
   h2{font-size:13px;margin:10px 0;color:var(--muted);font-weight:700;letter-spacing:.4px}
   label{display:block;font-size:13px;margin:8px 0 4px}
-  input[type="text"]{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:10px;background:#0c1218;color:#e6eef7;font-family:'Noto Sans KR',system-ui,-apple-system,sans-serif}
+  input[type="text"]{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:10px;background:#0c1218;color:#e6eef7}
   input[type="color"]{width:100%;height:38px;border:1px solid var(--border);border-radius:10px;background:#0c1218}
   input[type="range"]{width:100%}
   .row{display:grid;grid-template-columns:1fr 110px;gap:10px;align-items:center}
@@ -37,23 +37,17 @@
   .floating{position:absolute;top:10px;left:10px;z-index:5}
   .toast{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.7);color:#fff;padding:8px 10px;border-radius:8px;z-index:10;display:none}
 
-  /* Selection UI */
   .selector-container{margin-bottom:8px}
   .selector-input{position:relative}
-  .selector-dropdown{position:absolute;top:100%;left:0;right:0;background:#0c1218;border:1px solid var(--border);border-radius:8px;max-height:200px;overflow-y:auto;z-index:20;display:none;font-family:'Noto Sans KR',system-ui,-apple-system,sans-serif}
-  .dropdown-item{padding:8px 10px;cursor:pointer;font-size:12px;font-family:'Noto Sans KR',system-ui,-apple-system,sans-serif;color:#e6eef7}
+  .selector-dropdown{position:absolute;top:100%;left:0;right:0;background:#0c1218;border:1px solid var(--border);border-radius:8px;max-height:200px;overflow-y:auto;z-index:20;display:none}
+  .dropdown-item{padding:8px 10px;cursor:pointer;font-size:12px;color:#e6eef7}
   .dropdown-item:hover{background:#13202c}
   .selected-items{margin-top:8px}
-  .selected-item{background:#13202c;border:1px solid var(--border);border-radius:6px;padding:4px 8px;margin:2px;display:inline-flex;align-items:center;font-size:11px;font-family:'Noto Sans KR',system-ui,-apple-system,sans-serif}
+  .selected-item{background:#13202c;border:1px solid var(--border);border-radius:6px;padding:4px 8px;margin:2px;display:inline-flex;align-items:center;font-size:11px}
   .selected-item .remove{margin-left:6px;color:#ff6b6b;cursor:pointer;font-weight:bold}
-  .add-selection{display:flex;gap:6px;align-items:center;margin-top:6px}
 
-  /* Route drawing */
   .route-controls{margin-top:8px}
   .route-info{font-size:11px;color:var(--muted);margin-top:4px}
-
-  /* Color sections */
-  .color-section{margin-bottom:8px;padding:8px;background:#111;border-radius:8px}
 
   /* Geocoder */
   .mapboxgl-ctrl-geocoder, .mapboxgl-ctrl-geocoder .suggestions{background:#0c1218 !important; color:#e6eef7 !important;}
@@ -62,7 +56,6 @@
   .mapboxgl-ctrl-geocoder .suggestions > li{color:#e6eef7 !important; background:#0c1218 !important;}
   .mapboxgl-ctrl-geocoder .suggestions > .active{background:#13202c !important;}
 
-  /* Import Korean font */
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
 </style>
 </head>
@@ -70,6 +63,7 @@
 <div id="app">
   <aside id="panel">
     <h1>한국 지도 앱 — Tilesets Vector</h1>
+
     <div class="section">
       <label>지도 상태</label>
       <div id="status">지도 로딩 중...</div>
@@ -85,35 +79,31 @@
 
     <div class="section">
       <h2>시군구 선택</h2>
-      <div class="color-section">
-        <label>시군구 선택 색</label>
-        <input type="color" id="sigunguSelectColor" value="#ffcc33">
-      </div>
-      <div class="selector-container">
+      <label>시군구 선택 색</label>
+      <input type="color" id="sigunguSelectColor" value="#ffcc33">
+      <div class="selector-container" style="margin-top:8px">
         <div class="selector-input">
           <input type="text" id="sigunguSearch" placeholder="시군구 검색..." />
           <div id="sigunguDropdown" class="selector-dropdown"></div>
         </div>
         <div class="selected-items" id="selectedSigungu"></div>
-        <button class="btn btn-small" id="refreshSigungu" style="margin-top:4px">데이터 새로고침</button>
-        <button class="btn btn-small" id="testSigungu" style="margin-top:4px">검색 테스트</button>
+        <button class="btn btn-small" id="refreshSigungu" style="margin-top:6px">데이터 새로고침</button>
+        <button class="btn btn-small" id="testSigungu" style="margin-top:6px">검색 테스트</button>
       </div>
     </div>
 
     <div class="section">
       <h2>읍면동 선택</h2>
-      <div class="color-section">
-        <label>읍면동 선택 색</label>
-        <input type="color" id="emdSelectColor" value="#33ccff">
-      </div>
-      <div class="selector-container">
+      <label>읍면동 선택 색</label>
+      <input type="color" id="emdSelectColor" value="#33ccff">
+      <div class="selector-container" style="margin-top:8px">
         <div class="selector-input">
           <input type="text" id="emdSearch" placeholder="읍면동 검색..." />
           <div id="emdDropdown" class="selector-dropdown"></div>
         </div>
         <div class="selected-items" id="selectedEmd"></div>
-        <button class="btn btn-small" id="refreshEmd" style="margin-top:4px">데이터 새로고침</button>
-        <button class="btn btn-small" id="testEmd" style="margin-top:4px">검색 테스트</button>
+        <button class="btn btn-small" id="refreshEmd" style="margin-top:6px">데이터 새로고침</button>
+        <button class="btn btn-small" id="testEmd" style="margin-top:6px">검색 테스트</button>
       </div>
     </div>
 
@@ -139,7 +129,8 @@
       <div><label>국가 경계선색</label><input type="color" id="countryBoundaryColor" value="#000000"></div>
       <div class="row"><label>국가 경계선 굵기(px)</label><input type="range" id="countryWidth" min="0.5" max="6" step="0.1" value="2.0"></div>
       <div class="switch"><span>국가 경계선 점선</span><input type="checkbox" id="countryDashed"></div>
-      <div class="switch"><span>강/수로 표시</span><input type="checkbox" id="showRivers"></div>
+      <div class="switch"><span>강/호수(내륙 수체) 표시</span><input type="checkbox" id="showRivers"></div>
+      <div class="muted" style="margin-top:6px">* 바다/대양은 항상 표시됩니다 (내륙 수체만 토글).</div>
     </div>
 
     <div class="section">
@@ -165,17 +156,15 @@
 
     <div class="section">
       <h2>경로 그리기</h2>
-      <div class="route-controls">
-        <div class="two">
-          <button class="btn" id="startRoute">경로 그리기 시작</button>
-          <button class="btn" id="stopRoute">그리기 중지</button>
-        </div>
-        <div class="two" style="margin-top:6px">
-          <button class="btn ghost" id="clearRoute">경로 지우기</button>
-          <button class="btn ghost" id="exportRouteSvg">경로 SVG 저장</button>
-        </div>
-        <div class="route-info" id="routeInfo">경로 점 개수: 0</div>
+      <div class="two">
+        <button class="btn" id="startRoute">경로 그리기 시작</button>
+        <button class="btn" id="stopRoute">그리기 중지</button>
       </div>
+      <div class="two" style="margin-top:6px">
+        <button class="btn ghost" id="clearRoute">경로 지우기</button>
+        <button class="btn ghost" id="exportRouteSvg">경로 SVG 저장</button>
+      </div>
+      <div class="route-info" id="routeInfo">경로 점 개수: 0</div>
     </div>
 
     <div class="section">
@@ -203,8 +192,8 @@
 <script>
 (function(){
   /* ==== CONFIG ==== */
-  const MAPBOX_TOKEN = 'pk.eyJ1IjoibW1qanBwIiwiYSI6ImNtZmZnM3RwODBoYnEya3B6bnB3NW5zcHQifQ.6UON_8x8X84bxsCrURuggA'; // 여기에 본인 토큰을 입력하세요
-  
+  const MAPBOX_TOKEN = 'pk.eyJ1IjoibW1qanBwIiwiYSI6ImNtZmZnM3RwODBoYnEya3B6bnB3NW5zcHQifQ.6UON_8x8X84bxsCrURuggA';
+
   const TILESETS = {
     sido:    'mapbox://mmjjpp.25rm7fx4',
     sigungu: 'mapbox://mmjjpp.b4x5ixng',
@@ -233,15 +222,13 @@
     countryWidth: document.getElementById('countryWidth'),
     countryDashed: document.getElementById('countryDashed'),
     showRivers: document.getElementById('showRivers'),
-    // 시도 경계선
+    // per-level boundary controls
     sidoBoundaryColor: document.getElementById('sidoBoundaryColor'),
     sidoWidth: document.getElementById('sidoWidth'),
     sidoDashed: document.getElementById('sidoDashed'),
-    // 시군구 경계선
     sigunguBoundaryColor: document.getElementById('sigunguBoundaryColor'),
     sigunguWidth: document.getElementById('sigunguWidth'),
     sigunguDashed: document.getElementById('sigunguDashed'),
-    // 읍면동 경계선
     emdBoundaryColor: document.getElementById('emdBoundaryColor'),
     emdWidth: document.getElementById('emdWidth'),
     emdDashed: document.getElementById('emdDashed'),
@@ -249,1013 +236,6 @@
     exportSelection: document.getElementById('exportSelection'),
     exportSelectionSvg: document.getElementById('exportSelectionSvg'),
     savePng: document.getElementById('savePng'),
-    // 시군구 선택 (반투명 옵션 제거)
+    // selectors
     sigunguSearch: document.getElementById('sigunguSearch'),
     sigunguDropdown: document.getElementById('sigunguDropdown'),
-    selectedSigungu: document.getElementById('selectedSigungu'),
-    sigunguSelectColor: document.getElementById('sigunguSelectColor'),
-    // 읍면동 선택 (반투명 옵션 제거)
-    emdSearch: document.getElementById('emdSearch'),
-    emdDropdown: document.getElementById('emdDropdown'),
-    selectedEmd: document.getElementById('selectedEmd'),
-    emdSelectColor: document.getElementById('emdSelectColor'),
-    // 경로 그리기
-    startRoute: document.getElementById('startRoute'),
-    stopRoute: document.getElementById('stopRoute'),
-    clearRoute: document.getElementById('clearRoute'),
-    exportRouteSvg: document.getElementById('exportRouteSvg'),
-    routeInfo: document.getElementById('routeInfo'),
-  };
-
-  /* ==== 상태 ==== */
-  let map = null;
-  const selected = { sido: new Set(), sigungu: new Set(), emd: new Set() };
-  const allItems = { sido: [], sigungu: [], emd: [] };
-  const selectedGeometries = { sido: [], sigungu: [], emd: [] }; // 기하학적 정보 저장
-  
-  // 경로 그리기 상태
-  let isDrawingRoute = false;
-  let routePoints = [];
-
-  /* ==== 유틸 ==== */
-  function toast(msg){ els.toast.textContent=msg; els.toast.style.display='block'; setTimeout(()=> els.toast.style.display='none', 2000); }
-  function setStatus(msg){ els.status.textContent=msg; }
-  function firstSymbolId(){ const layers=map.getStyle()?.layers||[]; const sym=layers.find(l=>l.type==='symbol'); return sym?.id; }
-  function tryPaint(id,prop,val){ try{ map.setPaintProperty(id,prop,val); }catch{} }
-  function tryLayout(id,prop,val){ try{ map.setLayoutProperty(id,prop,val); }catch{} }
-
-  /* ==== 초기 바인딩 ==== */
-  function init(){
-    els.chkSido.addEventListener('change', ()=> toggleLevel('sido', els.chkSido.checked));
-    els.chkSigungu.addEventListener('change', ()=> toggleLevel('sigungu', els.chkSigungu.checked));
-    els.chkEmd.addEventListener('change', ()=> toggleLevel('emd', els.chkEmd.checked));
-
-    [els.waterColor, els.waterOpacity, els.landColor, els.landOpacity, els.countryBoundaryColor,
-     els.countryWidth, els.countryDashed, els.showRivers,
-     els.sidoBoundaryColor, els.sidoWidth, els.sidoDashed,
-     els.sigunguBoundaryColor, els.sigunguWidth, els.sigunguDashed,
-     els.emdBoundaryColor, els.emdWidth, els.emdDashed]
-     .forEach(el => {
-       el.addEventListener('input', applyRuntimeColors);
-       el.addEventListener('change', applyRuntimeColors);
-     });
-
-    // 분리된 색상 컨트롤 (반투명 옵션 제거)
-    els.sigunguSelectColor.addEventListener('input', () => {
-      updateSelectionStyles();
-      updateSelectionDisplay();
-    });
-    els.emdSelectColor.addEventListener('input', () => {
-      updateSelectionStyles();
-      updateSelectionDisplay();
-    });
-
-    els.clearSelection.addEventListener('click', clearAllSelections);
-    els.exportSelection.addEventListener('click', exportSelections);
-    els.exportSelectionSvg.addEventListener('click', exportSelectionsSvg);
-    els.savePng.addEventListener('click', savePNG);
-
-    // 데이터 새로고침 버튼
-    document.getElementById('refreshSigungu').addEventListener('click', () => {
-      console.log('Refreshing sigungu data...');
-      allItems.sigungu = [];
-      selectedGeometries.sigungu = [];
-      if (map.getLayer('sigungu-fill')) {
-        collectItems('sigungu');
-        setTimeout(() => setupSelector('sigungu'), 500);
-      } else {
-        setStatus('시군구 레이어를 먼저 활성화하세요');
-      }
-    });
-    
-    document.getElementById('refreshEmd').addEventListener('click', () => {
-      console.log('Refreshing emd data...');
-      allItems.emd = [];
-      selectedGeometries.emd = [];
-      if (map.getLayer('emd-fill')) {
-        collectItems('emd');
-        setTimeout(() => setupSelector('emd'), 500);
-      } else {
-        setStatus('읍면동 레이어를 먼저 활성화하세요');
-      }
-    });
-    
-    // 테스트 버튼
-    document.getElementById('testSigungu').addEventListener('click', () => {
-      console.log('Testing sigungu search...');
-      console.log('Available items:', allItems.sigungu.length, allItems.sigungu.slice(0, 10));
-      const searchEl = els.sigunguSearch;
-      const dropdownEl = els.sigunguDropdown;
-      if (searchEl && dropdownEl) {
-        console.log('Elements found, forcing dropdown display');
-        showDropdown(dropdownEl, allItems.sigungu.slice(0, 20), 'sigungu');
-        searchEl.focus();
-      } else {
-        console.error('Search elements not found!');
-      }
-    });
-    
-    document.getElementById('testEmd').addEventListener('click', () => {
-      console.log('Testing emd search...');
-      console.log('Available items:', allItems.emd.length, allItems.emd.slice(0, 10));
-      const searchEl = els.emdSearch;
-      const dropdownEl = els.emdDropdown;
-      if (searchEl && dropdownEl) {
-        console.log('Elements found, forcing dropdown display');
-        showDropdown(dropdownEl, allItems.emd.slice(0, 20), 'emd');
-        searchEl.focus();
-      } else {
-        console.error('Search elements not found!');
-      }
-    });
-
-    // 디버깅 도구
-    document.getElementById('forceStyle').addEventListener('click', () => {
-      console.log('Forcing style re-application...');
-      applyRuntimeColors();
-      hideAllLabels();
-      toast('스타일이 강제로 재적용되었습니다');
-    });
-
-    document.getElementById('forceSelection').addEventListener('click', () => {
-      console.log('Forcing selection display...');
-      updateSelectionStyles();
-      updateSelectionFilters();
-      updateSelectionDisplay();
-      toast('선택 표시가 강제로 업데이트되었습니다');
-    });
-
-    document.getElementById('checkLayers').addEventListener('click', () => {
-      console.log('=== LAYER STATUS ===');
-      ['sido', 'sigungu', 'emd'].forEach(lvl => {
-        const src = map.getSource(`${lvl}-src`);
-        const fill = map.getLayer(`${lvl}-fill`);
-        const line = map.getLayer(`${lvl}-line`);
-        const selection = map.getLayer(`${lvl}-selection`);
-        const persistent = map.getLayer(`${lvl}-selection-persistent`);
-        
-        console.log(`${lvl}:`, {
-          source: !!src,
-          fill: !!fill,
-          line: !!line,
-          selection: !!selection,
-          persistent: !!persistent,
-          selectedCount: selected[lvl].size,
-          itemsCount: allItems[lvl].length
-        });
-      });
-      
-      const L = map.getStyle()?.layers || [];
-      console.log('Total layers:', L.length);
-      console.log('Our layers:', L.filter(l => l.id.includes('sido') || l.id.includes('sigungu') || l.id.includes('emd')).map(l => l.id));
-      setStatus('레이어 상태가 콘솔에 출력되었습니다');
-    });
-
-    // 선택 UI 설정
-    setupSelector('sido');
-    setupSelector('sigungu');
-    setupSelector('emd');
-
-    // 경로 그리기 설정
-    els.startRoute.addEventListener('click', startRouteDrawing);
-    els.stopRoute.addEventListener('click', stopRouteDrawing);
-    els.clearRoute.addEventListener('click', clearRoute);
-    els.exportRouteSvg.addEventListener('click', exportRouteSvg);
-    
-    createMap();
-  }
-
-  /* ==== 지도 생성 ==== */
-  function createMap(){
-    if(!MAPBOX_TOKEN || MAPBOX_TOKEN === 'YOUR_MAPBOX_TOKEN_HERE'){ 
-      setStatus('코드에서 MAPBOX_TOKEN을 설정해주세요.'); 
-      return; 
-    }
-
-    mapboxgl.accessToken = MAPBOX_TOKEN;
-    if(map){ map.remove(); map=null; }
-
-    map = new mapboxgl.Map({
-      container: 'mapContainer',
-      style: 'mapbox://styles/mapbox/light-v11',
-      center: [127.8, 36.3],
-      zoom: 6,
-      locale: 'ko',
-      preserveDrawingBuffer: true
-    });
-    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
-    const geocoder = new MapboxGeocoder({ 
-      accessToken: mapboxgl.accessToken, 
-      mapboxgl, 
-      marker:false, 
-      language:'ko,en', 
-      placeholder:'주소 또는 키워드 검색…' 
-    });
-    els.geocoderMount.innerHTML='';
-    els.geocoderMount.appendChild(geocoder.onAdd(map));
-    geocoder.on('result', e=>{
-      if(e.result?.bbox){ 
-        const b=e.result.bbox; 
-        map.fitBounds([[b[0],b[1]],[b[2],b[3]]], { padding:60, duration:900 }); 
-      }
-      else if(e.result?.center){ 
-        map.flyTo({ center:e.result.center, zoom:14 }); 
-      }
-    });
-
-    map.on('load', ()=>{
-      console.log('Map loaded, applying initial styling...');
-      hideAllLabels();
-      setupRouteLayer();
-      setupSelectionLayers();
-      
-      // 스타일 강제 적용 (script.js 패턴)
-      setTimeout(() => {
-        applyRuntimeColors();
-        console.log('Runtime colors applied');
-      }, 100);
-      
-      setTimeout(() => {
-        applyRuntimeColors();
-        console.log('Runtime colors re-applied');
-      }, 1000);
-      
-      console.log('Map loaded, setting up selectors...');
-      
-      // 선택 UI 설정
-      setTimeout(() => {
-        setupSelector('sigungu');
-        setupSelector('emd');
-      }, 1000);
-      
-      // 시도 기본으로 로드
-      toggleLevel('sido', true);
-      setStatus('지도 로드됨 — 시도가 기본으로 활성화되었습니다.');
-    });
-
-    // script.js 패턴: 스타일 변경 시 레이어 재생성 및 스타일 재적용
-    map.on('style.load', ()=>{
-      console.log('Style loaded, recreating layers and reapplying styling...');
-      
-      // 스타일 변경 시 모든 사용자 정의 레이어와 소스를 재생성해야 함
-      hideAllLabels();
-      setupRouteLayer();
-      setupSelectionLayers();
-
-      // 레이어 재생성
-      if(els.chkSido.checked) addLevel('sido');
-      if(els.chkSigungu.checked) addLevel('sigungu');
-      if(els.chkEmd.checked) addLevel('emd');
-
-      // 스타일 즉시 적용 (script.js 패턴)
-      applyRuntimeColors();
-      
-      // 재적용으로 확실히
-      setTimeout(() => {
-        applyRuntimeColors();
-        console.log('Runtime colors re-applied after style load');
-      }, 500);
-
-      setTimeout(() => {
-        applyRuntimeColors();
-        console.log('Final runtime colors application');
-      }, 1500);
-
-      console.log('Map style loaded, resetting selectors...');
-
-      // 선택 UI 재설정
-      setTimeout(() => {
-        setupSelector('sigungu');
-        setupSelector('emd');
-      }, 500);
-
-      updateSelectionStyles();
-      updateSelectionFilters();
-      updateSelectionDisplay();
-    });
-
-    // 경로 그리기를 위한 클릭 이벤트
-    map.on('click', onMapClick);
-  }
-
-  /* ==== 레벨 토글 ==== */
-  async function toggleLevel(lvl, on){
-    if(on) {
-      await addLevel(lvl);
-      // 데이터 로드 후 아이템 목록 수집 - 더 긴 대기시간과 재시도
-      setTimeout(() => {
-        collectItems(lvl);
-        // 추가 재시도
-        setTimeout(() => {
-          if (allItems[lvl].length === 0) {
-            console.log(`Retrying data collection for ${lvl}`);
-            collectItems(lvl);
-            // 한 번 더 재시도
-            setTimeout(() => {
-              if (allItems[lvl].length === 0) {
-                console.log(`Final retry for ${lvl}`);
-                collectItems(lvl);
-              }
-            }, 2000);
-          }
-        }, 3000);
-      }, 1500);
-    } else {
-      removeLevel(lvl);
-    }
-    applyRuntimeColors();
-    updateSelectionStyles();
-    updateSelectionFilters();
-  }
-
-  async function addLevel(lvl){
-    const srcId = `${lvl}-src`;
-    if(!map.getSource(srcId)){
-      map.addSource(srcId, { type:'vector', url: TILESETS[lvl] });
-    }
-
-    const fillId = `${lvl}-fill`;
-    if(!map.getLayer(fillId)){
-      // 시도 레이어를 waterway 위에 배치
-      const beforeLayer = lvl === 'sido' ? getWaterwayLayerId() : firstSymbolId();
-      map.addLayer({
-        id: fillId, type:'fill', source: srcId, 'source-layer': SOURCE_LAYERS[lvl],
-        paint:{ 'fill-color':'#ffffff', 'fill-opacity':0.03 },
-        minzoom: (lvl==='emd'? 9 : lvl==='sigungu'? 6 : 0)
-      }, beforeLayer);
-    }
-
-    const lineId = `${lvl}-line`;
-    if(!map.getLayer(lineId)){
-      map.addLayer({
-        id: lineId, type:'line', source: srcId, 'source-layer': SOURCE_LAYERS[lvl],
-        paint:{
-          'line-color': getBoundaryColor(lvl),
-          'line-width': getBoundaryWidth(lvl),
-          'line-dasharray': getBoundaryDashed(lvl) ? [2,2] : [1,0]
-        },
-        minzoom: (lvl==='emd'? 9 : lvl==='sigungu'? 6 : 0)
-      });
-    }
-
-    const selId = `${lvl}-selection`;
-    if(!map.getLayer(selId)){
-      const beforeLayer = lvl === 'sido' ? getWaterwayLayerId() : firstSymbolId();
-      map.addLayer({
-        id: selId, type:'fill', source: srcId, 'source-layer': SOURCE_LAYERS[lvl],
-        paint:{
-          'fill-color': getSelectionColor(lvl),
-          'fill-opacity': getSelectionOpacity(lvl)
-        },
-        filter: ['==', ['get', 'FEATURE_ID'], ''],
-        minzoom: 0,
-        maxzoom: 24
-      }, beforeLayer);
-    }
-
-    setStatus(`로드됨: ${lvl}`);
-  }
-
-  function removeLevel(lvl){
-    ['selection','line','fill'].forEach(sfx=>{
-      const id = `${lvl}-${sfx}`;
-      if(map.getLayer(id)) map.removeLayer(id);
-    });
-    const srcId = `${lvl}-src`;
-    if(map.getSource(srcId)) map.removeSource(srcId);
-
-    selected[lvl]?.clear();
-    allItems[lvl] = [];
-  }
-
-  function getWaterwayLayerId() {
-    const layers = map.getStyle()?.layers || [];
-    const waterway = layers.find(l => /waterway|river|stream/i.test(l.id));
-    return waterway?.id;
-  }
-
-  function getSelectionColor(lvl) {
-    if (lvl === 'sigungu') return els.sigunguSelectColor.value;
-    if (lvl === 'emd') return els.emdSelectColor.value;
-    return '#ffcc33'; // sido 기본색
-  }
-
-  function getSelectionOpacity(lvl) {
-    // 스타일에 따른 고정 불투명도 (script.js 패턴 적용)
-    return 0.8; // 모든 선택 영역에 고정 불투명도
-  }
-
-  function getBoundaryColor(lvl) {
-    if (lvl === 'sido') return els.sidoBoundaryColor.value;
-    if (lvl === 'sigungu') return els.sigunguBoundaryColor.value;
-    if (lvl === 'emd') return els.emdBoundaryColor.value;
-    return '#333333'; // 기본색
-  }
-
-  function getBoundaryWidth(lvl) {
-    if (lvl === 'sido') return parseFloat(els.sidoWidth.value);
-    if (lvl === 'sigungu') return parseFloat(els.sigunguWidth.value);
-    if (lvl === 'emd') return parseFloat(els.emdWidth.value);
-    return 1.0; // 기본 굵기
-  }
-
-  function getBoundaryDashed(lvl) {
-    if (lvl === 'sido') return els.sidoDashed.checked;
-    if (lvl === 'sigungu') return els.sigunguDashed.checked;
-    if (lvl === 'emd') return els.emdDashed.checked;
-    return false; // 기본값
-  }
-
-  /* ==== 아이템 수집 ==== */
-  function collectItems(lvl) {
-    if (!map.getLayer(`${lvl}-fill`)) {
-      console.log(`Layer ${lvl}-fill not found`);
-      return;
-    }
-    
-    try {
-      // 먼저 렌더된 feature들로 시도
-      const renderedFeatures = map.queryRenderedFeatures({
-        layers: [`${lvl}-fill`]
-      });
-      
-      console.log(`Rendered features for ${lvl}:`, renderedFeatures.length);
-      
-      // 그 다음 소스 feature들로 시도
-      const sourceFeatures = map.querySourceFeatures(`${lvl}-src`, {
-        sourceLayer: SOURCE_LAYERS[lvl]
-      });
-      
-      console.log(`Source features for ${lvl}:`, sourceFeatures.length);
-      
-      // 두 방법 모두 시도해서 더 많은 결과가 나오는 것 사용
-      const features = sourceFeatures.length > renderedFeatures.length ? sourceFeatures : renderedFeatures;
-      
-      const items = new Set();
-      features.forEach(feature => {
-        const props = feature.properties;
-        if (props && props[FIELDS[lvl]]) {
-          const name = props[FIELDS[lvl]];
-          if (typeof name === 'string' && name.trim()) {
-            items.add(name.trim());
-          }
-        }
-      });
-      
-      allItems[lvl] = Array.from(items).sort((a, b) => a.localeCompare(b, 'ko'));
-      console.log(`${lvl} items collected:`, allItems[lvl].length, allItems[lvl].slice(0, 5));
-      setStatus(`${lvl} 아이템 ${allItems[lvl].length}개 수집됨`);
-      
-      // 수집 완료 후 즉시 selector 재설정
-      if (lvl !== 'sido') {
-        setTimeout(() => {
-          setupSelector(lvl);
-          updateDropdownIfNeeded(lvl);
-        }, 100);
-      }
-    } catch (error) {
-      console.error(`Error collecting ${lvl} items:`, error);
-      // 재시도
-      setTimeout(() => collectItems(lvl), 2000);
-    }
-  }
-
-  function updateDropdownIfNeeded(lvl) {
-    const searchEl = els[`${lvl}Search`];
-    const dropdownEl = els[`${lvl}Dropdown`];
-    
-    if (searchEl && dropdownEl && allItems[lvl].length > 0) {
-      console.log(`Updating dropdown for ${lvl} with ${allItems[lvl].length} items`);
-      // 기본 상태에서 몇 개 아이템 보여주기
-      showDropdown(dropdownEl, allItems[lvl].slice(0, 20), lvl);
-    }
-  }
-
-  /* ==== 선택 UI ==== */
-  function setupSelector(type) {
-    if (type === 'sido') return; // 시도는 선택 UI 없음
-    
-    const searchEl = els[`${type}Search`];
-    const dropdownEl = els[`${type}Dropdown`];
-    const selectedEl = els[`selected${type.charAt(0).toUpperCase() + type.slice(1)}`];
-    
-    searchEl.addEventListener('input', () => {
-      const query = searchEl.value.toLowerCase();
-      const filtered = allItems[type].filter(item => 
-        item.toLowerCase().includes(query)
-      );
-      showDropdown(dropdownEl, filtered, type);
-    });
-    
-    searchEl.addEventListener('focus', () => {
-      showDropdown(dropdownEl, allItems[type], type);
-    });
-    
-    searchEl.addEventListener('blur', () => {
-      setTimeout(() => dropdownEl.style.display = 'none', 200);
-    });
-    
-    updateSelectedDisplay(type);
-  }
-  
-  function showDropdown(dropdownEl, items, type) {
-    dropdownEl.innerHTML = '';
-    items.slice(0, 100).forEach(item => {
-      const div = document.createElement('div');
-      div.className = 'dropdown-item';
-      div.textContent = item;
-      div.addEventListener('click', () => selectItem(type, item));
-      dropdownEl.appendChild(div);
-    });
-    dropdownEl.style.display = items.length > 0 ? 'block' : 'none';
-  }
-  
-  function selectItem(type, item) {
-    selected[type].add(item);
-    
-    // 선택된 아이템의 geometry 저장
-    if (map.getLayer(`${type}-fill`)) {
-      const features = map.querySourceFeatures(`${type}-src`, {
-        sourceLayer: SOURCE_LAYERS[type],
-        filter: ['==', ['get', FIELDS[type]], item]
-      });
-      
-      features.forEach(feature => {
-        if (feature.geometry) {
-          selectedGeometries[type].push({
-            name: item,
-            geometry: feature.geometry,
-            properties: feature.properties
-          });
-        }
-      });
-    }
-    
-    updateSelectedDisplay(type);
-    updateSelectionFilters();
-    updateSelectionDisplay();
-    els[`${type}Search`].value = '';
-    els[`${type}Dropdown`].style.display = 'none';
-    setStatus(`선택됨: ${item}`);
-  }
-  
-  function updateSelectedDisplay(type) {
-    if (type === 'sido') return;
-    
-    const container = els[`selected${type.charAt(0).toUpperCase() + type.slice(1)}`];
-    container.innerHTML = '';
-    
-    selected[type].forEach(item => {
-      const div = document.createElement('div');
-      div.className = 'selected-item';
-      div.innerHTML = `${item} <span class="remove" data-item="${item}">×</span>`;
-      div.querySelector('.remove').addEventListener('click', () => {
-        selected[type].delete(item);
-        // geometry에서도 제거
-        selectedGeometries[type] = selectedGeometries[type].filter(g => g.name !== item);
-        updateSelectedDisplay(type);
-        updateSelectionDisplay();
-      });
-      container.appendChild(div);
-    });
-  }
-
-  /* ==== Geometry 기반 선택 표시 ==== */
-  function setupSelectionLayers() {
-    ['sido', 'sigungu', 'emd'].forEach(type => {
-      const sourceId = `${type}-selection-geojson`;
-      const layerId = `${type}-selection-persistent`;
-      
-      if (!map.getSource(sourceId)) {
-        map.addSource(sourceId, {
-          type: 'geojson',
-          data: {
-            type: 'FeatureCollection',
-            features: []
-          }
-        });
-      }
-      
-      if (!map.getLayer(layerId)) {
-        map.addLayer({
-          id: layerId,
-          type: 'fill',
-          source: sourceId,
-          paint: {
-            'fill-color': getSelectionColor(type),
-            'fill-opacity': getSelectionOpacity(type)
-          }
-        }, firstSymbolId());
-      }
-    });
-  }
-  
-  function updateSelectionDisplay() {
-    ['sido', 'sigungu', 'emd'].forEach(type => {
-      const sourceId = `${type}-selection-geojson`;
-      if (!map.getSource(sourceId)) return;
-      
-      const features = selectedGeometries[type].map(item => ({
-        type: 'Feature',
-        properties: item.properties || {},
-        geometry: item.geometry
-      }));
-      
-      map.getSource(sourceId).setData({
-        type: 'FeatureCollection',
-        features: features
-      });
-      
-      // 색상 업데이트
-      const layerId = `${type}-selection-persistent`;
-      if (map.getLayer(layerId)) {
-        map.setPaintProperty(layerId, 'fill-color', getSelectionColor(type));
-        map.setPaintProperty(layerId, 'fill-opacity', getSelectionOpacity(type));
-      }
-    });
-  }
-
-  /* ==== 선택 스타일 및 필터 ==== */
-  function updateSelectionStyles(){
-    ['sido','sigungu','emd'].forEach(lvl=>{
-      // 기존 tileset 기반 selection 레이어
-      const id = `${lvl}-selection`;
-      if(map && map.getLayer(id)){
-        map.setPaintProperty(id,'fill-color', getSelectionColor(lvl));
-        map.setPaintProperty(id,'fill-opacity', getSelectionOpacity(lvl));
-      }
-      
-      // persistent geometry 기반 레이어
-      const persistentId = `${lvl}-selection-persistent`;
-      if(map && map.getLayer(persistentId)){
-        map.setPaintProperty(persistentId,'fill-color', getSelectionColor(lvl));
-        map.setPaintProperty(persistentId,'fill-opacity', getSelectionOpacity(lvl));
-      }
-    });
-  }
-
-  function updateSelectionFilters(){
-    ['sido','sigungu','emd'].forEach(lvl=>{
-      const id = `${lvl}-selection`;
-      if(map && map.getLayer(id)){
-        const selectedItems = Array.from(selected[lvl]);
-        if(selectedItems.length > 0) {
-          map.setFilter(id, ['in', ['get', FIELDS[lvl]], ['literal', selectedItems]]);
-        } else {
-          map.setFilter(id, ['==', ['get', 'FEATURE_ID'], '']);
-        }
-      }
-    });
-  }
-
-  function clearAllSelections() {
-    selected.sido.clear();
-    selected.sigungu.clear();
-    selected.emd.clear();
-    selectedGeometries.sido = [];
-    selectedGeometries.sigungu = [];
-    selectedGeometries.emd = [];
-    updateSelectedDisplay('sigungu');
-    updateSelectedDisplay('emd');
-    updateSelectionFilters();
-    updateSelectionDisplay();
-    setStatus('모든 선택 해제됨');
-  }
-
-  function exportSelections() {
-    const out = { 
-      sido: Array.from(selected.sido),
-      sigungu: Array.from(selected.sigungu), 
-      emd: Array.from(selected.emd) 
-    };
-    const blob = new Blob([JSON.stringify(out,null,2)], {type:'application/json'});
-    const a=document.createElement('a'); 
-    a.href=URL.createObjectURL(blob); 
-    a.download='selections.json'; 
-    a.click();
-    setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-  }
-
-  function exportSelectionsSvg() {
-    if (!map) return;
-    
-    const canvas = map.getCanvas();
-    const width = canvas.width;
-    const height = canvas.height;
-    
-    let svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}">`;
-    
-    // 배경 추가 (육지색)
-    svg += `<rect width="100%" height="100%" fill="${els.landColor.value}"/>`;
-    
-    let hasSelections = false;
-    
-    // 각 레벨별로 선택된 영역 처리 - 현재 화면에 보이는 것만
-    ['sido', 'sigungu', 'emd'].forEach(lvl => {
-      if (selected[lvl].size === 0) return;
-      
-      const selectionLayerId = `${lvl}-selection`;
-      if (!map.getLayer(selectionLayerId)) return;
-      
-      // 현재 화면에 렌더된 선택 영역만 가져오기
-      const features = map.queryRenderedFeatures({
-        layers: [selectionLayerId]
-      });
-      
-      if (features.length === 0) return;
-      
-      const color = getSelectionColor(lvl);
-      const opacity = getSelectionOpacity(lvl);
-      
-      features.forEach(feature => {
-        hasSelections = true;
-        const geometry = feature.geometry;
-        
-        if (geometry.type === 'Polygon') {
-          geometry.coordinates.forEach((ring) => {
-            let path = '';
-            ring.forEach((coord, i) => {
-              const pixel = map.project(coord);
-              if (i === 0) {
-                path += `M${pixel.x.toFixed(2)},${pixel.y.toFixed(2)}`;
-              } else {
-                path += ` L${pixel.x.toFixed(2)},${pixel.y.toFixed(2)}`;
-              }
-            });
-            path += ' Z';
-            
-            svg += `<path d="${path}" fill="${color}" fill-opacity="${opacity}" stroke="none"/>`;
-          });
-        } else if (geometry.type === 'MultiPolygon') {
-          geometry.coordinates.forEach(polygon => {
-            polygon.forEach((ring) => {
-              let path = '';
-              ring.forEach((coord, i) => {
-                const pixel = map.project(coord);
-                if (i === 0) {
-                  path += `M${pixel.x.toFixed(2)},${pixel.y.toFixed(2)}`;
-                } else {
-                  path += ` L${pixel.x.toFixed(2)},${pixel.y.toFixed(2)}`;
-                }
-              });
-              path += ' Z';
-              
-              svg += `<path d="${path}" fill="${color}" fill-opacity="${opacity}" stroke="none"/>`;
-            });
-          });
-        }
-      });
-    });
-    
-    svg += '</svg>';
-    
-    if (!hasSelections) {
-      toast('현재 화면에 선택된 영역이 보이지 않습니다');
-      return;
-    }
-    
-    const blob = new Blob([svg], { type: 'image/svg+xml' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'selected-areas.svg';
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-    
-    toast('선택 영역 SVG가 다운로드되었습니다');
-  }
-
-  /* ==== 모든 라벨 숨김 ==== */
-  function hideAllLabels(){
-    if(!map) return;
-    const L = map.getStyle()?.layers || [];
-    for(const l of L){
-      if(l.type==='symbol'){
-        tryLayout(l.id, 'visibility', 'none');
-      }
-    }
-  }
-
-  /* ==== 런타임 스타일 ==== */
-  function applyRuntimeColors(){
-    if(!map) return;
-    const sea=els.waterColor.value, land=els.landColor.value, bcol=els.boundaryColor.value;
-    const wOp=parseFloat(els.waterOpacity.value), lOp=parseFloat(els.landOpacity.value);
-    const cW=parseFloat(els.countryWidth.value), aW=parseFloat(els.adminWidth.value);
-    const cDashed=els.countryDashed.checked, aDashed=els.adminDashed.checked;
-    const showRivers = els.showRivers.checked;
-
-    const L = map.getStyle()?.layers || [];
-
-    // 물 (바다)
-    for(const l of L){
-      if(l.type==='fill' && /water|ocean|sea/i.test((l.id||'')+' '+(l['source-layer']||'')) && 
-         !/river|stream|canal|waterway/i.test((l.id||'')+' '+(l['source-layer']||''))){
-        tryPaint(l.id,'fill-color',sea); tryPaint(l.id,'fill-opacity',wOp);
-      }
-      if(l.type==='line' && /water|ocean|sea/i.test((l.id||'')+' '+(l['source-layer']||'')) && 
-         !/river|stream|canal|waterway/i.test((l.id||'')+' '+(l['source-layer']||''))){
-        tryPaint(l.id,'line-color',sea); tryPaint(l.id,'line-opacity',wOp);
-      }
-    }
-
-    // 강/수로 표시/숨김
-    for(const l of L){
-      if(/river|stream|canal|waterway|tributary/i.test((l.id||'')+' '+(l['source-layer']||''))){
-        // 시도 레이어가 활성화되어 있으면 항상 숨김
-        const visibility = (showRivers && !els.chkSido.checked) ? 'visible' : 'none';
-        tryLayout(l.id, 'visibility', visibility);
-        if(showRivers && l.type==='fill') {
-          tryPaint(l.id,'fill-color',sea); tryPaint(l.id,'fill-opacity',wOp);
-        }
-        if(showRivers && l.type==='line') {
-          tryPaint(l.id,'line-color',sea); tryPaint(l.id,'line-opacity',wOp);
-        }
-      }
-    }
-
-    // 육지 - 모든 fill 레이어를 같은 색으로
-    for(const l of L){
-      if(l.type==='background'){
-        tryPaint(l.id,'background-color',land); 
-        tryPaint(l.id,'background-opacity',lOp);
-      }
-      if(l.type==='fill' && 
-         !/water|ocean|sea|river|stream|canal|waterway|building|structure/i.test((l.id||'')+' '+(l['source-layer']||'')) &&
-         !/(^|-)sido-|sigungu-|emd-/.test(l.id)){
-        tryPaint(l.id,'fill-color',land); 
-        tryPaint(l.id,'fill-opacity',lOp);
-      }
-    }
-
-    // 도로 숨기기
-    for(const l of L){
-      if(/road|highway|street|path|track|ferry|bridge|tunnel/i.test((l.id||'')+' '+(l['source-layer']||''))){
-        tryLayout(l.id, 'visibility', 'none');
-      }
-    }
-
-    // 국가 경계선만
-    for(const l of L){
-      if(l.type==='line' && /(country|disputed|international)/i.test((l.id||'')+' '+(l['source-layer']||''))){
-        tryPaint(l.id,'line-color',bcol);
-        tryPaint(l.id,'line-width',cW);
-        tryPaint(l.id,'line-dasharray', cDashed ? [2,2] : [1,0]);
-      }
-    }
-
-    // 우리 행정 라인
-    ['sido-line','sigungu-line','emd-line'].forEach(id=>{
-      if(map.getLayer(id)){
-        tryPaint(id,'line-color',bcol);
-        tryPaint(id,'line-width',aW);
-        tryPaint(id,'line-dasharray', aDashed ? [2,2] : [1,0]);
-      }
-    });
-  }
-
-  /* ==== 경로 그리기 ==== */
-  function setupRouteLayer() {
-    if (!map.getSource('route-source')) {
-      map.addSource('route-source', {
-        type: 'geojson',
-        data: {
-          type: 'Feature',
-          properties: {},
-          geometry: {
-            type: 'LineString',
-            coordinates: []
-          }
-        }
-      });
-    }
-    
-    if (!map.getLayer('route-line')) {
-      map.addLayer({
-        id: 'route-line',
-        type: 'line',
-        source: 'route-source',
-        paint: {
-          'line-color': '#ff0000',
-          'line-width': 3,
-          'line-opacity': 0.8
-        }
-      });
-    }
-    
-    if (!map.getLayer('route-points')) {
-      map.addLayer({
-        id: 'route-points',
-        type: 'circle',
-        source: 'route-source',
-        paint: {
-          'circle-color': '#ff0000',
-          'circle-radius': 4,
-          'circle-opacity': 0.8
-        }
-      });
-    }
-  }
-  
-  function startRouteDrawing() {
-    isDrawingRoute = true;
-    map.getCanvas().style.cursor = 'crosshair';
-    setStatus('경로 그리기 모드 - 지도를 클릭하여 점을 추가하세요');
-  }
-  
-  function stopRouteDrawing() {
-    isDrawingRoute = false;
-    map.getCanvas().style.cursor = '';
-    setStatus('경로 그리기 중지됨');
-  }
-  
-  function onMapClick(e) {
-    if (!isDrawingRoute) return;
-    
-    routePoints.push([e.lngLat.lng, e.lngLat.lat]);
-    updateRouteDisplay();
-    els.routeInfo.textContent = `경로 점 개수: ${routePoints.length}`;
-  }
-  
-  function updateRouteDisplay() {
-    if (routePoints.length === 0) return;
-    
-    const geojson = {
-      type: 'Feature',
-      properties: {},
-      geometry: {
-        type: 'LineString',
-        coordinates: routePoints
-      }
-    };
-    
-    map.getSource('route-source').setData(geojson);
-  }
-  
-  function clearRoute() {
-    routePoints = [];
-    const emptyGeojson = {
-      type: 'Feature',
-      properties: {},
-      geometry: {
-        type: 'LineString',
-        coordinates: []
-      }
-    };
-    map.getSource('route-source').setData(emptyGeojson);
-    els.routeInfo.textContent = '경로 점 개수: 0';
-    setStatus('경로가 지워졌습니다');
-  }
-  
-  function exportRouteSvg() {
-    if (routePoints.length < 2) {
-      toast('최소 2개의 점이 필요합니다');
-      return;
-    }
-    
-    const canvas = map.getCanvas();
-    const width = canvas.width;
-    const height = canvas.height;
-    
-    let svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">`;
-    svg += '<path d="M';
-    
-    routePoints.forEach((point, index) => {
-      const pixel = map.project(point);
-      if (index === 0) {
-        svg += `${pixel.x},${pixel.y}`;
-      } else {
-        svg += ` L${pixel.x},${pixel.y}`;
-      }
-    });
-    
-    svg += '" stroke="red" stroke-width="3" fill="none" stroke-opacity="0.8"/>';
-    svg += '</svg>';
-    
-    const blob = new Blob([svg], { type: 'image/svg+xml' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'route.svg';
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-    
-    toast('경로 SVG가 다운로드되었습니다');
-  }
-
-  /* ==== PNG 저장 ==== */
-  function savePNG(){
-    if(!map) return;
-    map.once('idle', ()=>{
-      const a=document.createElement('a');
-      a.href = map.getCanvas().toDataURL('image/png');
-      a.download='map.png';
-      a.click();
-    });
-  }
-
-  // 부팅
-  init();
-})();
-</script>
-</body>
-</html>
