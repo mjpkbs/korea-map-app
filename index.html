@@ -294,7 +294,7 @@
             <div class="admin-section">
                 <h4>시군구 (Cities/Counties)</h4>
                 <div class="selection-area">
-                    <input type="text" id="sigunguInput" list="sigunguList" placeholder="Select 시군구...">
+                    <input type="text" id="sigunguInput" list="sigunguList" placeholder="Type 시군구 name...">
                     <input type="color" id="sigunguColor" value="#4ecdc4">
                     <button class="add-btn" onclick="addSelection('sigungu')">Add</button>
                 </div>
@@ -306,7 +306,7 @@
             <div class="admin-section">
                 <h4>읍면동 (Towns/Neighborhoods)</h4>
                 <div class="selection-area">
-                    <input type="text" id="eubmyeondongInput" list="eubmyeondongList" placeholder="Select 읍면동...">
+                    <input type="text" id="eubmyeondongInput" list="eubmyeondongList" placeholder="Type 읍면동 name...">
                     <input type="color" id="eubmyeondongColor" value="#45b7d1">
                     <button class="add-btn" onclick="addSelection('eubmyeondong')">Add</button>
                 </div>
@@ -345,16 +345,6 @@
                         type: 'fill',
                         source: 'mapbox-streets',
                         'source-layer': 'landuse',
-                        filter: ['==', 'class', 'land'],
-                        paint: {
-                            'fill-color': '#f0f0f0'
-                        }
-                    },
-                    {
-                        id: 'landcover',
-                        type: 'fill',
-                        source: 'mapbox-streets',
-                        'source-layer': 'landcover',
                         paint: {
                             'fill-color': '#f0f0f0'
                         }
@@ -414,7 +404,7 @@
             // Load administrative names
             loadAdminNames();
 
-            // Update map style
+            // Initialize map style with current color values
             updateMapStyle();
         });
 
@@ -519,33 +509,19 @@
         }
 
         async function loadAdminNames() {
-            // Sample data for all administrative levels
+            // Only populate 시도 datalist with complete list
             adminData.sido.names = [
                 '서울특별시', '부산광역시', '대구광역시', '인천광역시', '광주광역시',
                 '대전광역시', '울산광역시', '세종특별자치시', '경기도', '강원도',
                 '충청북도', '충청남도', '전라북도', '전라남도', '경상북도', '경상남도', '제주특별자치도'
             ];
 
-            adminData.sigungu.names = [
-                '강남구', '강동구', '강북구', '강서구', '관악구', '광진구', '구로구', '금천구', '노원구', '도봉구',
-                '동대문구', '동작구', '마포구', '서대문구', '서초구', '성동구', '성북구', '송파구', '양천구', '영등포구',
-                '용산구', '은평구', '종로구', '중구', '중랑구', '수원시', '성남시', '안양시', '안산시', '고양시',
-                '용인시', '청주시', '전주시', '포항시', '창원시', '마산시', '진해구', '천안시', '남양주시', '화성시',
-                '부천시', '광명시', '평택시', '안산시', '과천시', '구리시', '안양시', '의왕시', '하남시', '오산시'
-            ];
-
-            adminData.eubmyeondong.names = [
-                '신림동', '역삼동', '강남동', '서초동', '잠실동', '송파동', '강동구', '성동구', '광진구', '동대문구',
-                '중랑구', '성북구', '강북구', '도봉구', '노원구', '은평구', '서대문구', '마포구', '양천구', '강서구',
-                '구로구', '금천구', '영등포구', '동작구', '관악구', '서초구', '강남구', '송파구', '강동구', '용산구',
-                '종로구', '중구', '수원시', '장안구', '연통구', '팔달구', '영통구', '성남시', '수정구', '중원구',
-                '분당구', '안양시', '만안구', '동안구', '부천시', '원미구', '소사구', '오정구', '광명시', '평택시'
-            ];
-
-            // Populate all datalists
+            // Populate only 시도 datalist - 시군구 and 읍면동 will be search-only
             populateDatalist('sidoList', adminData.sido.names);
-            populateDatalist('sigunguList', adminData.sigungu.names);
-            populateDatalist('eubmyeondongList', adminData.eubmyeondong.names);
+            
+            // Clear other datalists to make them search-only
+            document.getElementById('sigunguList').innerHTML = '';
+            document.getElementById('eubmyeondongList').innerHTML = '';
         }
 
         function populateDatalist(listId, names) {
@@ -594,8 +570,13 @@
             const oceanColor = document.getElementById('oceanColor').value;
             const landColor = document.getElementById('landColor').value;
             
-            // Update background color
-            map.setPaintProperty('background', 'background-color', landColor);
+            // Update ocean/background color
+            map.setPaintProperty('background', 'background-color', oceanColor);
+            
+            // Update land color
+            if (map.getLayer('land')) {
+                map.setPaintProperty('land', 'fill-color', landColor);
+            }
         }
 
         function updateBoundaryStyle(type) {
