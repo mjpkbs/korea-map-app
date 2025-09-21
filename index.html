@@ -161,10 +161,20 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 14px;
+            transition: background-color 0.2s;
         }
 
         .add-btn:hover {
             background: #005a8f;
+        }
+
+        .export-btn {
+            background: #28a745;
+            font-weight: 500;
+        }
+
+        .export-btn:hover {
+            background: #218838;
         }
 
         .selected-items {
@@ -322,6 +332,11 @@
                     <input type="checkbox" id="eubmyeondongDashedBoundary">
                 </div>
             </div>
+        </div>
+
+        <div class="control-group">
+            <h3>Export</h3>
+            <button class="add-btn export-btn" onclick="exportToPNG()" style="width: 100%;">📷 Save as PNG</button>
         </div>
 
         <!-- Administrative Divisions -->
@@ -544,7 +559,7 @@
         }
 
         function addFillLayers() {
-            // 시도 fills
+            // 시도 fills (all zoom levels)
             map.addLayer({
                 id: 'sido-fill',
                 type: 'fill',
@@ -558,10 +573,12 @@
                         'rgba(0,0,0,0)'
                     ],
                     'fill-opacity': 0.7
-                }
+                },
+                minzoom: 0,
+                maxzoom: 24
             }, 'sido-boundaries');
 
-            // 시군구 fills
+            // 시군구 fills (all zoom levels)
             map.addLayer({
                 id: 'sigungu-fill',
                 type: 'fill',
@@ -575,10 +592,12 @@
                         'rgba(0,0,0,0)'
                     ],
                     'fill-opacity': 0.7
-                }
+                },
+                minzoom: 0,
+                maxzoom: 24
             }, 'sigungu-boundaries');
 
-            // 읍면동 fills
+            // 읍면동 fills (all zoom levels)
             map.addLayer({
                 id: 'eubmyeondong-fill',
                 type: 'fill',
@@ -592,7 +611,9 @@
                         'rgba(0,0,0,0)'
                     ],
                     'fill-opacity': 0.7
-                }
+                },
+                minzoom: 0,
+                maxzoom: 24
             }, 'eubmyeondong-boundaries');
         }
 
@@ -978,6 +999,26 @@
                 }
             });
         });
+
+        // Export to PNG function
+        function exportToPNG() {
+            const canvas = map.getCanvas();
+            const link = document.createElement('a');
+            
+            // Get current date and time for filename
+            const now = new Date();
+            const timestamp = now.toISOString().slice(0, 19).replace(/[:-]/g, '').replace('T', '_');
+            const filename = `korean_admin_map_${timestamp}.png`;
+            
+            // Convert canvas to blob and download
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                link.href = url;
+                link.download = filename;
+                link.click();
+                URL.revokeObjectURL(url);
+            }, 'image/png');
+        }
     </script>
 </body>
 </html>
