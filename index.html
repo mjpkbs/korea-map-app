@@ -1,581 +1,442 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Korean Administrative Map</title>
-    <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
-    <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>대한민국 행정구역 인터랙티브 맵 (Mapbox)</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+  <meta http-equiv="Pragma" content="no-cache"/>
+  <meta http-equiv="Expires" content="0"/>
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            height: 100vh;
-            display: flex;
-        }
+  <!-- Mapbox GL JS -->
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.css" rel="stylesheet">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.6.0/mapbox-gl.js"></script>
 
-        #map {
-            flex: 1;
-            height: 100vh;
-        }
-
-        .controls {
-            width: 350px;
-            background: #fff;
-            padding: 20px;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-            overflow-y: auto;
-            height: 100vh;
-        }
-
-        .control-group {
-            margin-bottom: 25px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .control-group:last-child {
-            border-bottom: none;
-        }
-
-        .control-group h3 {
-            margin-bottom: 15px;
-            color: #333;
-            font-size: 16px;
-            font-weight: 600;
-        }
-
-        .control-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-            gap: 10px;
-        }
-
-        .control-item label {
-            min-width: 80px;
-            font-size: 14px;
-            color: #666;
-        }
-
-        input[type="color"] {
-            width: 40px;
-            height: 30px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        input[type="range"] {
-            flex: 1;
-            height: 6px;
-            border-radius: 3px;
-            background: #ddd;
-            outline: none;
-        }
-
-        input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-        }
-
-        .admin-section {
-            margin-bottom: 20px;
-        }
-
-        .admin-section h4 {
-            margin-bottom: 10px;
-            color: #444;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .selection-area {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-
-        input[type="text"] {
-            flex: 1;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-
-        .add-btn {
-            padding: 8px 12px;
-            background: #007cbf;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .add-btn:hover {
-            background: #005a8f;
-        }
-
-        .selected-items {
-            max-height: 120px;
-            overflow-y: auto;
-            border: 1px solid #eee;
-            border-radius: 4px;
-            padding: 8px;
-            background: #f9f9f9;
-        }
-
-        .selected-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 4px 8px;
-            margin-bottom: 4px;
-            background: white;
-            border-radius: 3px;
-            border: 1px solid #ddd;
-            font-size: 13px;
-        }
-
-        .selected-item span {
-            flex: 1;
-            margin-right: 8px;
-        }
-
-        .selected-item input[type="color"] {
-            width: 25px;
-            height: 25px;
-            margin-right: 5px;
-        }
-
-        .remove-btn {
-            background: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 3px;
-            padding: 2px 6px;
-            cursor: pointer;
-            font-size: 11px;
-        }
-
-        .remove-btn:hover {
-            background: #c82333;
-        }
-
-        datalist {
-            max-height: 200px;
-        }
-
-        .width-display {
-            margin-left: 10px;
-            font-size: 12px;
-            color: #666;
-            font-weight: 500;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-            font-style: italic;
-        }
-    </style>
+  <style>
+    :root {
+      --panel-w: 360px;
+    }
+    html, body { height: 100%; margin: 0; }
+    #app { height: 100%; display: grid; grid-template-columns: var(--panel-w) 1fr; }
+    #panel {
+      box-sizing: border-box;
+      padding: 14px 14px 80px;
+      border-right: 1px solid #e5e7eb;
+      background: #fafafa;
+      overflow: auto;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    }
+    #map { position: relative; }
+    .section { margin-bottom: 16px; background: white; border: 1px solid #e5e7eb; border-radius: 14px; padding: 12px; }
+    .section h3 { margin: 0 0 10px; font-size: 16px; }
+    .row { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; margin-top: 8px; }
+    .row > label { font-size: 12px; color: #555; grid-column: 1 / -1; }
+    .ctrl { display: flex; gap: 8px; align-items: center; }
+    .ctrl input[type="color"] { width: 42px; height: 32px; padding: 0; border: 1px solid #ddd; border-radius: 8px; }
+    .ctrl input[type="text"] { width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 8px; }
+    button {
+      height: 34px; padding: 0 12px; border: 1px solid #ddd; background: #111; color: #fff;
+      border-radius: 10px; cursor: pointer;
+    }
+    button.ghost { background: #f3f4f6; color: #111; }
+    .small { font-size: 12px; color: #666; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; border: 1px solid #e5e7eb; border-radius: 999px;
+      margin: 4px 6px 0 0; background: #fff;
+    }
+    .swatch { width: 14px; height: 14px; border-radius: 50%; border: 1px solid #ddd; }
+    .list { margin-top: 8px; }
+    .grid2 { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+    .hint { font-size: 11px; color: #6b7280; margin-top: 6px; }
+    .hdr { display:flex; align-items:center; justify-content:space-between; margin: 0 0 12px; }
+    .hdr h2 { margin:0; font-size:18px; }
+    .footer { position: sticky; bottom: 0; margin-top: 12px; background: #fafafa; padding-top: 8px; border-top: 1px dashed #e5e7eb; }
+    .tight { margin-top: 4px; }
+    .stack { display: grid; gap: 8px; }
+    .slider { width: 100%; }
+  </style>
 </head>
 <body>
-    <div class="controls">
-        <h2 style="margin-bottom: 25px; color: #333;">Korean Administrative Map</h2>
-        
-        <!-- Map Style Controls -->
-        <div class="control-group">
-            <h3>Map Style</h3>
-            <div class="control-item">
-                <label>Ocean:</label>
-                <input type="color" id="oceanColor" value="#a6cee3">
-            </div>
-            <div class="control-item">
-                <label>Land:</label>
-                <input type="color" id="landColor" value="#f0f0f0">
-            </div>
-        </div>
-
-        <!-- Boundary Controls -->
-        <div class="control-group">
-            <h3>Boundaries</h3>
-            <div class="control-item">
-                <label>Color:</label>
-                <input type="color" id="boundaryColor" value="#333333">
-            </div>
-            <div class="control-item">
-                <label>Width:</label>
-                <input type="range" id="boundaryWidth" min="0.5" max="5" step="0.5" value="1">
-                <span class="width-display" id="widthDisplay">1px</span>
-            </div>
-            <div class="control-item">
-                <label>Dashed:</label>
-                <input type="checkbox" id="dashedBoundary">
-            </div>
-        </div>
-
-        <!-- Administrative Divisions -->
-        <div class="control-group">
-            <h3>Administrative Divisions</h3>
-            
-            <!-- 시도 Section -->
-            <div class="admin-section">
-                <h4>시도 (Provinces)</h4>
-                <div class="selection-area">
-                    <input type="text" id="sidoInput" list="sidoList" placeholder="Select 시도...">
-                    <input type="color" id="sidoColor" value="#ff6b6b">
-                    <button class="add-btn" onclick="addSelection('sido')">Add</button>
-                </div>
-                <datalist id="sidoList"></datalist>
-                <div class="selected-items" id="sidoSelected"></div>
-            </div>
-
-            <!-- 시군구 Section -->
-            <div class="admin-section">
-                <h4>시군구 (Cities/Counties)</h4>
-                <div class="selection-area">
-                    <input type="text" id="sigunguInput" list="sigunguList" placeholder="Select 시군구...">
-                    <input type="color" id="sigunguColor" value="#4ecdc4">
-                    <button class="add-btn" onclick="addSelection('sigungu')">Add</button>
-                </div>
-                <datalist id="sigunguList"></datalist>
-                <div class="selected-items" id="sigunguSelected"></div>
-            </div>
-
-            <!-- 읍면동 Section -->
-            <div class="admin-section">
-                <h4>읍면동 (Towns/Neighborhoods)</h4>
-                <div class="selection-area">
-                    <input type="text" id="eubmyeondongInput" list="eubmyeondongList" placeholder="Select 읍면동...">
-                    <input type="color" id="eubmyeondongColor" value="#45b7d1">
-                    <button class="add-btn" onclick="addSelection('eubmyeondong')">Add</button>
-                </div>
-                <datalist id="eubmyeondongList"></datalist>
-                <div class="selected-items" id="eubmyeondongSelected"></div>
-            </div>
-        </div>
+<div id="app">
+  <aside id="panel">
+    <div class="hdr">
+      <h2>대한민국 행정구역 맵</h2>
+      <button id="btnRescan" class="ghost" title="이름 목록 재스캔">재스캔</button>
     </div>
 
-    <div id="map"></div>
+    <div class="section">
+      <h3>배경 & 바다 & 경계선</h3>
+      <div class="stack">
+        <div class="grid2">
+          <div class="ctrl"><label>바다 색 (ocean)</label></div>
+          <input id="oceanColor" type="color" value="#a7c7ff" />
+        </div>
+        <div class="grid2">
+          <div class="ctrl"><label>육지 배경 색 (land)</label></div>
+          <input id="landColor" type="color" value="#f8f9fb" />
+        </div>
+        <div class="grid2">
+          <div class="ctrl"><label>경계선 색</label></div>
+          <input id="boundaryColor" type="color" value="#111111" />
+        </div>
+        <div class="grid2">
+          <div class="ctrl"><label>경계선 두께</label></div>
+          <input id="boundaryWidth" class="slider" type="range" min="0" max="6" step="0.5" value="1.5" />
+        </div>
+        <div class="ctrl tight">
+          <input id="boundaryDashed" type="checkbox" />
+          <label for="boundaryDashed">점선(대시) 사용</label>
+        </div>
+      </div>
+      <div class="hint">경계선 스타일은 시도/시군구/읍면동 외곽선에 모두 적용됩니다.</div>
+    </div>
 
-    <script>
-        // Initialize Mapbox
-        mapboxgl.accessToken = 'pk.eyJ1IjoibW1qanBwIiwiYSI6ImNtZmZnM3RwODBoYnEya3B6bnB3NW5zcHQifQ.6UON_8x8X84bxsCrURuggA';
+    <div class="section">
+      <h3>시도 선택 (SIDO_NM)</h3>
+      <div class="row">
+        <label>이름 검색/선택 → 색 지정 → 추가</label>
+        <div class="ctrl">
+          <input id="sidoName" list="dl-sido" type="text" placeholder="예: 서울특별시" autocomplete="off" />
+          <input id="sidoColor" type="color" value="#ffcc00" />
+          <button id="btnAddSido">추가</button>
+        </div>
+      </div>
+      <datalist id="dl-sido"></datalist>
+      <div id="list-sido" class="list"></div>
+    </div>
 
-        const map = new mapboxgl.Map({
-            container: 'map',
-            style: 'mapbox://styles/mapbox/light-v11',
-            center: [127.7669, 35.9078],
-            zoom: 6
-        });
+    <div class="section">
+      <h3>시군구 선택 (SIGUNGU_NM)</h3>
+      <div class="row">
+        <label>이름 검색/선택 → 색 지정 → 추가</label>
+        <div class="ctrl">
+          <input id="sigunguName" list="dl-sigungu" type="text" placeholder="예: 강남구" autocomplete="off" />
+          <input id="sigunguColor" type="color" value="#66bb6a" />
+          <button id="btnAddSigungu">추가</button>
+        </div>
+      </div>
+      <datalist id="dl-sigungu"></datalist>
+      <div id="list-sigungu" class="list"></div>
+    </div>
 
-        // Administrative data storage
-        const adminData = {
-            sido: { 
-                tileset: 'mmjjpp.25rm7fx4',
-                field: 'SIDO_NM',
-                names: [],
-                selected: new Map()
-            },
-            sigungu: { 
-                tileset: 'mmjjpp.b4x5ixng',
-                field: 'SIGUNGU_NM',
-                names: [],
-                selected: new Map()
-            },
-            eubmyeondong: { 
-                tileset: 'mmjjpp.53755csu',
-                field: 'ADM_NM',
-                names: [],
-                selected: new Map()
-            }
-        };
+    <div class="section">
+      <h3>읍·면·동 선택 (ADM_NM)</h3>
+      <div class="row">
+        <label>이름 검색/선택 → 색 지정 → 추가</label>
+        <div class="ctrl">
+          <input id="emdName" list="dl-emd" type="text" placeholder="예: 역삼1동" autocomplete="off" />
+          <input id="emdColor" type="color" value="#ef5350" />
+          <button id="btnAddEmd">추가</button>
+        </div>
+      </div>
+      <datalist id="dl-emd"></datalist>
+      <div id="list-emd" class="list"></div>
+    </div>
 
-        // Initialize map
-        map.on('load', () => {
-            // Add sources
-            map.addSource('sido-source', {
-                type: 'vector',
-                url: `mapbox://${adminData.sido.tileset}`
-            });
+    <div class="footer small">
+      <div>• 이름 목록은 처음 로드시 전국을 훑어 자동 수집합니다. 누락 시 “재스캔”을 눌러 주세요.</div>
+      <div>• 다중 선택이 가능하며, 같은 이름을 다시 추가하면 색이 갱신됩니다.</div>
+    </div>
+  </aside>
+  <main id="map"></main>
+</div>
 
-            map.addSource('sigungu-source', {
-                type: 'vector',
-                url: `mapbox://${adminData.sigungu.tileset}`
-            });
+<script>
+  // ==== SETUP ====
+  mapboxgl.accessToken = 'pk.eyJ1IjoibW1qanBwIiwiYSI6ImNtZmZnM3RwODBoYnEya3B6bnB3NW5zcHQifQ.6UON_8x8X84bxsCrURuggA';
 
-            map.addSource('eubmyeondong-source', {
-                type: 'vector',
-                url: `mapbox://${adminData.eubmyeondong.tileset}`
-            });
+  const KOREA_BOUNDS = [[124.5, 33.0], [131.2, 38.7]]; // 대략적 한반도 경계 (제주 포함)
+  const START_CENTER = [127.8, 36.2];
+  const START_ZOOM = 6;
 
-            // Add boundary layers
-            addBoundaryLayers();
+  const SOURCES = {
+    sido:   { id: 'src-sido',   url: 'mapbox://mmjjpp.25rm7fx4', layer: 'BND_SIDO_PG-b2cuck',   field: 'SIDO_NM' },
+    sigungu:{ id: 'src-sigungu',url: 'mapbox://mmjjpp.b4x5ixng', layer: 'BND_SIGUNGU_PG-8djgqa',field: 'SIGUNGU_NM' },
+    emd:    { id: 'src-emd',    url: 'mapbox://mmjjpp.53755csu', layer: 'BND_ADM_DONG_PG-3p138h',field: 'ADM_NM' }
+  };
 
-            // Add fill layers for selected regions
-            addFillLayers();
+  // selections: {key -> { name: color }}
+  const selections = { sido: {}, sigungu: {}, emd: {} };
 
-            // Load administrative names
-            loadAdminNames();
+  // ==== MAP INIT ====
+  const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/light-v11',
+    center: START_CENTER,
+    zoom: START_ZOOM,
+    attributionControl: false
+  });
 
-            // Update map style
-            updateMapStyle();
-        });
+  map.addControl(new mapboxgl.NavigationControl({ visualizePitch: true }), 'bottom-right');
+  map.addControl(new mapboxgl.ScaleControl({ unit: 'metric' }), 'bottom-left');
 
-        function addBoundaryLayers() {
-            // 시도 boundaries
-            map.addLayer({
-                id: 'sido-boundaries',
-                type: 'line',
-                source: 'sido-source',
-                'source-layer': 'BND_SIDO_PG-b2cuck',
-                paint: {
-                    'line-color': '#333333',
-                    'line-width': 1
-                }
-            });
+  map.on('load', async () => {
+    // Add custom sources
+    for (const key of Object.keys(SOURCES)) {
+      const s = SOURCES[key];
+      if (!map.getSource(s.id)) {
+        map.addSource(s.id, { type: 'vector', url: s.url });
+      }
+    }
 
-            // 시군구 boundaries
-            map.addLayer({
-                id: 'sigungu-boundaries',
-                type: 'line',
-                source: 'sigungu-source',
-                'source-layer': 'BND_SIGUNGU_PG-8djgqa',
-                paint: {
-                    'line-color': '#333333',
-                    'line-width': 0.5
-                }
-            });
+    // Add fill highlight layers (solid color by "match" on name)
+    addOrReplaceLayer('lyr-sido-fill',    'fill',   SOURCES.sido,   { 'fill-opacity': 0.9, 'fill-color': ['rgba',0,0,0,0] }, 1);
+    addOrReplaceLayer('lyr-sigungu-fill', 'fill',   SOURCES.sigungu,{ 'fill-opacity': 0.9, 'fill-color': ['rgba',0,0,0,0] }, 1);
+    addOrReplaceLayer('lyr-emd-fill',     'fill',   SOURCES.emd,    { 'fill-opacity': 0.9, 'fill-color': ['rgba',0,0,0,0] }, 1);
 
-            // 읍면동 boundaries
-            map.addLayer({
-                id: 'eubmyeondong-boundaries',
-                type: 'line',
-                source: 'eubmyeondong-source',
-                'source-layer': 'BND_ADM_DONG_PG-3p138h',
-                paint: {
-                    'line-color': '#333333',
-                    'line-width': 0.3
-                }
-            });
-        }
+    // Boundary line layers (one per level; style unified)
+    addOrReplaceLayer('lyr-sido-line',    'line',   SOURCES.sido,   boundaryPaint(), 2);
+    addOrReplaceLayer('lyr-sigungu-line', 'line',   SOURCES.sigungu,boundaryPaint(), 2);
+    addOrReplaceLayer('lyr-emd-line',     'line',   SOURCES.emd,    boundaryPaint(), 2);
 
-        function addFillLayers() {
-            // 시도 fills
-            map.addLayer({
-                id: 'sido-fill',
-                type: 'fill',
-                source: 'sido-source',
-                'source-layer': 'BND_SIDO_PG-b2cuck',
-                paint: {
-                    'fill-color': [
-                        'case',
-                        ['has', ['get', 'SIDO_NM'], ['literal', {}]],
-                        ['get', ['get', 'SIDO_NM'], ['literal', {}]],
-                        'rgba(0,0,0,0)'
-                    ],
-                    'fill-opacity': 0.7
-                }
-            }, 'sido-boundaries');
+    // Put our layers above water/land labels
+    ensureLayerOrder();
 
-            // 시군구 fills
-            map.addLayer({
-                id: 'sigungu-fill',
-                type: 'fill',
-                source: 'sigungu-source',
-                'source-layer': 'BND_SIGUNGU_PG-8djgqa',
-                paint: {
-                    'fill-color': [
-                        'case',
-                        ['has', ['get', 'SIGUNGU_NM'], ['literal', {}]],
-                        ['get', ['get', 'SIGUNGU_NM'], ['literal', {}]],
-                        'rgba(0,0,0,0)'
-                    ],
-                    'fill-opacity': 0.7
-                }
-            }, 'sigungu-boundaries');
+    // Initial background + water colors
+    applyOceanColor(document.getElementById('oceanColor').value);
+    applyLandColor(document.getElementById('landColor').value);
 
-            // 읍면동 fills
-            map.addLayer({
-                id: 'eubmyeondong-fill',
-                type: 'fill',
-                source: 'eubmyeondong-source',
-                'source-layer': 'BND_ADM_DONG_PG-3p138h',
-                paint: {
-                    'fill-color': [
-                        'case',
-                        ['has', ['get', 'ADM_NM'], ['literal', {}]],
-                        ['get', ['get', 'ADM_NM'], ['literal', {}]],
-                        'rgba(0,0,0,0)'
-                    ],
-                    'fill-opacity': 0.7
-                }
-            }, 'eubmyeondong-boundaries');
-        }
+    // Build name lists (sweep-load tiles nationwide, then query unique names)
+    await buildAllNameLists();
+  });
 
-        async function loadAdminNames() {
-            // This would typically involve querying the tilesets
-            // For now, we'll add some sample data
-            // In a real implementation, you would query the tileset features
-            
-            // Sample data - replace with actual tileset queries
-            adminData.sido.names = [
-                '서울특별시', '부산광역시', '대구광역시', '인천광역시', '광주광역시',
-                '대전광역시', '울산광역시', '세종특별자치시', '경기도', '강원도',
-                '충청북도', '충청남도', '전라북도', '전라남도', '경상북도', '경상남도', '제주특별자치도'
-            ];
+  function addOrReplaceLayer(id, type, src, paint, minzoom = 0) {
+    if (map.getLayer(id)) map.removeLayer(id);
+    map.addLayer({
+      id, type, source: src.id, 'source-layer': src.layer, paint, minzoom
+    });
+  }
 
-            // Populate datalists
-            populateDatalist('sidoList', adminData.sido.names);
-            
-            // Note: For real implementation, you would need to query the actual tilesets
-            // to get all unique values for each administrative level
-        }
+  function boundaryPaint() {
+    return {
+      'line-color': document.getElementById('boundaryColor').value,
+      'line-width': Number(document.getElementById('boundaryWidth').value),
+      'line-opacity': 1.0,
+      'line-dasharray': document.getElementById('boundaryDashed').checked ? [2, 2] : [1, 0],
+      'line-join': 'round',
+      'line-cap': 'round'
+    };
+  }
 
-        function populateDatalist(listId, names) {
-            const datalist = document.getElementById(listId);
-            datalist.innerHTML = '';
-            names.forEach(name => {
-                const option = document.createElement('option');
-                option.value = name;
-                datalist.appendChild(option);
-            });
-        }
+  function ensureLayerOrder() {
+    const labelLayerId = findFirstSymbolLayerId();
+    const ids = [
+      'lyr-sido-fill','lyr-sigungu-fill','lyr-emd-fill',
+      'lyr-sido-line','lyr-sigungu-line','lyr-emd-line'
+    ];
+    for (const id of ids) {
+      if (!map.getLayer(id)) continue;
+      if (labelLayerId) map.moveLayer(id, labelLayerId);
+    }
+  }
 
-        // Control event listeners
-        document.getElementById('oceanColor').addEventListener('change', updateMapStyle);
-        document.getElementById('landColor').addEventListener('change', updateMapStyle);
-        document.getElementById('boundaryColor').addEventListener('change', updateBoundaryStyle);
-        document.getElementById('boundaryWidth').addEventListener('input', updateBoundaryStyle);
-        document.getElementById('dashedBoundary').addEventListener('change', updateBoundaryStyle);
+  function findFirstSymbolLayerId() {
+    const layers = map.getStyle().layers;
+    for (const l of layers) {
+      if (l.type === 'symbol') return l.id;
+    }
+    return null;
+  }
 
-        // Width display update
-        document.getElementById('boundaryWidth').addEventListener('input', (e) => {
-            document.getElementById('widthDisplay').textContent = e.target.value + 'px';
-        });
+  // ==== BACKGROUND / WATER CONTROLS ====
+  function applyOceanColor(hex) {
+    // Default style has 'water' fill layers
+    const layers = map.getStyle().layers;
+    for (const l of layers) {
+      if (l.type === 'fill' && /water/i.test(l.id)) {
+        map.setPaintProperty(l.id, 'fill-color', hex);
+      }
+    }
+  }
+  function applyLandColor(hex) {
+    // Background layer
+    const bg = map.getStyle().layers.find(l => l.type === 'background');
+    if (bg) map.setPaintProperty(bg.id, 'background-color', hex);
+  }
 
-        function updateMapStyle() {
-            const oceanColor = document.getElementById('oceanColor').value;
-            const landColor = document.getElementById('landColor').value;
-            
-            map.setPaintProperty('water', 'fill-color', oceanColor);
-            map.setPaintProperty('land', 'fill-color', landColor);
-        }
+  document.getElementById('oceanColor').addEventListener('input', (e) => applyOceanColor(e.target.value));
+  document.getElementById('landColor').addEventListener('input', (e) => applyLandColor(e.target.value));
 
-        function updateBoundaryStyle() {
-            const boundaryColor = document.getElementById('boundaryColor').value;
-            const boundaryWidth = parseFloat(document.getElementById('boundaryWidth').value);
-            const isDashed = document.getElementById('dashedBoundary').checked;
-            
-            const dashArray = isDashed ? [2, 2] : [1, 0];
-            
-            ['sido-boundaries', 'sigungu-boundaries', 'eubmyeondong-boundaries'].forEach(layerId => {
-                map.setPaintProperty(layerId, 'line-color', boundaryColor);
-                map.setPaintProperty(layerId, 'line-width', boundaryWidth);
-                map.setPaintProperty(layerId, 'line-dasharray', dashArray);
-            });
-        }
+  // ==== BOUNDARY STYLE HANDLERS ====
+  function applyBoundaryStyle() {
+    const ids = ['lyr-sido-line','lyr-sigungu-line','lyr-emd-line'];
+    const color = document.getElementById('boundaryColor').value;
+    const width = Number(document.getElementById('boundaryWidth').value);
+    const dashed = document.getElementById('boundaryDashed').checked ? [2,2] : [1,0];
 
-        function addSelection(type) {
-            const input = document.getElementById(`${type}Input`);
-            const color = document.getElementById(`${type}Color`).value;
-            const name = input.value.trim();
-            
-            if (!name) return;
-            
-            // Add to selected map
-            adminData[type].selected.set(name, color);
-            
-            // Update display
-            updateSelectedDisplay(type);
-            
-            // Update map
-            updateFillLayer(type);
-            
-            // Clear input
-            input.value = '';
-        }
+    for (const id of ids) {
+      if (!map.getLayer(id)) continue;
+      map.setPaintProperty(id, 'line-color', color);
+      map.setPaintProperty(id, 'line-width', width);
+      map.setPaintProperty(id, 'line-dasharray', dashed);
+    }
+  }
 
-        function removeSelection(type, name) {
-            adminData[type].selected.delete(name);
-            updateSelectedDisplay(type);
-            updateFillLayer(type);
-        }
+  document.getElementById('boundaryColor').addEventListener('input', applyBoundaryStyle);
+  document.getElementById('boundaryWidth').addEventListener('input', applyBoundaryStyle);
+  document.getElementById('boundaryDashed').addEventListener('change', applyBoundaryStyle);
 
-        function updateSelectedDisplay(type) {
-            const container = document.getElementById(`${type}Selected`);
-            container.innerHTML = '';
-            
-            adminData[type].selected.forEach((color, name) => {
-                const item = document.createElement('div');
-                item.className = 'selected-item';
-                item.innerHTML = `
-                    <span>${name}</span>
-                    <input type="color" value="${color}" onchange="updateSelectionColor('${type}', '${name}', this.value)">
-                    <button class="remove-btn" onclick="removeSelection('${type}', '${name}')">×</button>
-                `;
-                container.appendChild(item);
-            });
-        }
+  // ==== SELECTION RENDERING ====
+  function buildMatchExpression(field, mapping) {
+    const entries = [];
+    for (const [name, color] of Object.entries(mapping)) {
+      if (name && color) { entries.push(name, color); }
+    }
+    // ["match", ["get", field], name1, color1, name2, color2, ..., defaultColor]
+    return ['match', ['get', field], ...entries, ['rgba', 0,0,0,0]];
+  }
 
-        function updateSelectionColor(type, name, color) {
-            adminData[type].selected.set(name, color);
-            updateFillLayer(type);
-        }
+  function refreshFills() {
+    if (map.getLayer('lyr-sido-fill')) {
+      map.setPaintProperty('lyr-sido-fill', 'fill-color', buildMatchExpression(SOURCES.sido.field, selections.sido));
+    }
+    if (map.getLayer('lyr-sigungu-fill')) {
+      map.setPaintProperty('lyr-sigungu-fill', 'fill-color', buildMatchExpression(SOURCES.sigungu.field, selections.sigungu));
+    }
+    if (map.getLayer('lyr-emd-fill')) {
+      map.setPaintProperty('lyr-emd-fill', 'fill-color', buildMatchExpression(SOURCES.emd.field, selections.emd));
+    }
+  }
 
-        function updateFillLayer(type) {
-            const colorMap = {};
-            adminData[type].selected.forEach((color, name) => {
-                colorMap[name] = color;
-            });
-            
-            map.setPaintProperty(`${type}-fill`, 'fill-color', [
-                'case',
-                ['has', ['get', adminData[type].field], ['literal', colorMap]],
-                ['get', ['get', adminData[type].field], ['literal', colorMap]],
-                'rgba(0,0,0,0)'
-            ]);
-        }
+  function addSelection(level, name, color) {
+    if (!name) return;
+    selections[level][name] = color;
+    refreshFills();
+    renderSelectionList(level);
+  }
 
-        // Add click handlers for interactive selection
-        map.on('click', 'sido-fill', (e) => {
-            const name = e.features[0].properties.SIDO_NM;
-            if (name && !adminData.sido.selected.has(name)) {
-                document.getElementById('sidoInput').value = name;
-            }
-        });
+  function removeSelection(level, name) {
+    delete selections[level][name];
+    refreshFills();
+    renderSelectionList(level);
+  }
 
-        map.on('click', 'sigungu-fill', (e) => {
-            const name = e.features[0].properties.SIGUNGU_NM;
-            if (name && !adminData.sigungu.selected.has(name)) {
-                document.getElementById('sigunguInput').value = name;
-            }
-        });
+  function renderSelectionList(level) {
+    const root = document.getElementById(`list-${level}`);
+    root.innerHTML = '';
+    for (const [name, color] of Object.entries(selections[level])) {
+      const pill = document.createElement('div');
+      pill.className = 'pill';
+      const sw = document.createElement('span');
+      sw.className = 'swatch';
+      sw.style.background = color;
+      const label = document.createElement('span');
+      label.textContent = name;
+      const del = document.createElement('button');
+      del.textContent = '삭제';
+      del.className = 'ghost';
+      del.onclick = () => removeSelection(level, name);
+      pill.append(sw, label, del);
+      root.appendChild(pill);
+    }
+  }
 
-        map.on('click', 'eubmyeondong-fill', (e) => {
-            const name = e.features[0].properties.ADM_NM;
-            if (name && !adminData.eubmyeondong.selected.has(name)) {
-                document.getElementById('eubmyeondongInput').value = name;
-            }
-        });
+  // Buttons to add selections
+  document.getElementById('btnAddSido').addEventListener('click', () => {
+    addSelection('sido',
+      document.getElementById('sidoName').value.trim(),
+      document.getElementById('sidoColor').value
+    );
+  });
+  document.getElementById('btnAddSigungu').addEventListener('click', () => {
+    addSelection('sigungu',
+      document.getElementById('sigunguName').value.trim(),
+      document.getElementById('sigunguColor').value
+    );
+  });
+  document.getElementById('btnAddEmd').addEventListener('click', () => {
+    addSelection('emd',
+      document.getElementById('emdName').value.trim(),
+      document.getElementById('emdColor').value
+    );
+  });
 
-        // Add cursor style for clickable areas
-        map.on('mouseenter', 'sido-fill', () => map.getCanvas().style.cursor = 'pointer');
-        map.on('mouseleave', 'sido-fill', () => map.getCanvas().style.cursor = '');
-        map.on('mouseenter', 'sigungu-fill', () => map.getCanvas().style.cursor = 'pointer');
-        map.on('mouseleave', 'sigungu-fill', () => map.getCanvas().style.cursor = '');
-        map.on('mouseenter', 'eubmyeondong-fill', () => map.getCanvas().style.cursor = 'pointer');
-        map.on('mouseleave', 'eubmyeondong-fill', () => map.getCanvas().style.cursor = '');
-    </script>
+  // ==== NAME LIST BUILD (datalist) ====
+  async function buildAllNameLists() {
+    // Sweep to encourage tile loads, then query unique names per layer
+    await sweepKorea();
+    await Promise.all([
+      populateDatalist(SOURCES.sido,   'dl-sido'),
+      populateDatalist(SOURCES.sigungu,'dl-sigungu'),
+      populateDatalist(SOURCES.emd,    'dl-emd')
+    ]);
+  }
+
+  async function sweepKorea() {
+    // Light grid sweep over the bounds to force tile loads at different zooms
+    const [minX, minY] = KOREA_BOUNDS[0];
+    const [maxX, maxY] = KOREA_BOUNDS[1];
+
+    const points = [];
+    const cols = 4, rows = 3;
+    for (let i=0;i<=cols;i++) {
+      for (let j=0;j<=rows;j++) {
+        const x = minX + (maxX - minX) * (i/cols);
+        const y = minY + (maxY - minY) * (j/rows);
+        points.push([x,y]);
+      }
+    }
+
+    // Two zoom levels to fetch different tile resolutions
+    const zooms = [5.2, 7.2];
+
+    for (const z of zooms) {
+      for (const p of points) {
+        map.jumpTo({ center: p, zoom: z });
+        await waitIdle();
+      }
+    }
+    // return to start
+    map.easeTo({ center: START_CENTER, zoom: START_ZOOM, duration: 300 });
+  }
+
+  function waitIdle() {
+    return new Promise(res => {
+      if (map.loaded() && map.areTilesLoaded()) return res();
+      const onIdle = () => { map.off('idle', onIdle); res(); };
+      map.on('idle', onIdle);
+    });
+  }
+
+  async function populateDatalist(src, datalistId) {
+    const dl = document.getElementById(datalistId);
+    const names = new Set();
+
+    // Query all features currently loaded in source tiles
+    const feats = map.querySourceFeatures(src.id, { sourceLayer: src.layer });
+    for (const f of feats) {
+      const nm = f.properties?.[src.field];
+      if (nm) names.add(nm);
+    }
+
+    // Render options
+    const arr = Array.from(names).sort((a,b)=>a.localeCompare(b));
+    dl.innerHTML = '';
+    for (const nm of arr) {
+      const opt = document.createElement('option');
+      opt.value = nm;
+      dl.appendChild(opt);
+    }
+  }
+
+  document.getElementById('btnRescan').addEventListener('click', async () => {
+    await buildAllNameLists();
+  });
+
+  // Optional: click to inspect properties (helpful while styling)
+  map.on('click', (e) => {
+    const features = map.queryRenderedFeatures(e.point, {
+      layers: ['lyr-emd-fill','lyr-sigungu-fill','lyr-sido-fill']
+    });
+    if (!features.length) return;
+    const f = features[0];
+    const props = f.properties || {};
+    const lines = [];
+    for (const k of ['SIDO_NM','SIGUNGU_NM','ADM_NM']) if (props[k]) lines.push(`${k}: ${props[k]}`);
+    if (lines.length) {
+      new mapboxgl.Popup().setLngLat(e.lngLat).setHTML(lines.join('<br>')).addTo(map);
+    }
+  });
+</script>
 </body>
 </html>
