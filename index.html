@@ -88,7 +88,6 @@
       <div class="color-section">
         <label>시군구 선택 색</label>
         <input type="color" id="sigunguSelectColor" value="#ffcc33">
-        <div class="switch" style="margin-top:4px"><span>반투명</span><input type="checkbox" id="sigunguSelectHalf" checked></div>
       </div>
       <div class="selector-container">
         <div class="selector-input">
@@ -106,7 +105,6 @@
       <div class="color-section">
         <label>읍면동 선택 색</label>
         <input type="color" id="emdSelectColor" value="#33ccff">
-        <div class="switch" style="margin-top:4px"><span>반투명</span><input type="checkbox" id="emdSelectHalf" checked></div>
       </div>
       <div class="selector-container">
         <div class="selector-input">
@@ -251,18 +249,16 @@
     exportSelection: document.getElementById('exportSelection'),
     exportSelectionSvg: document.getElementById('exportSelectionSvg'),
     savePng: document.getElementById('savePng'),
-    // 시군구 선택
+    // 시군구 선택 (반투명 옵션 제거)
     sigunguSearch: document.getElementById('sigunguSearch'),
     sigunguDropdown: document.getElementById('sigunguDropdown'),
     selectedSigungu: document.getElementById('selectedSigungu'),
     sigunguSelectColor: document.getElementById('sigunguSelectColor'),
-    sigunguSelectHalf: document.getElementById('sigunguSelectHalf'),
-    // 읍면동 선택
+    // 읍면동 선택 (반투명 옵션 제거)
     emdSearch: document.getElementById('emdSearch'),
     emdDropdown: document.getElementById('emdDropdown'),
     selectedEmd: document.getElementById('selectedEmd'),
     emdSelectColor: document.getElementById('emdSelectColor'),
-    emdSelectHalf: document.getElementById('emdSelectHalf'),
     // 경로 그리기
     startRoute: document.getElementById('startRoute'),
     stopRoute: document.getElementById('stopRoute'),
@@ -304,20 +300,12 @@
        el.addEventListener('change', applyRuntimeColors);
      });
 
-    // 분리된 색상 컨트롤
+    // 분리된 색상 컨트롤 (반투명 옵션 제거)
     els.sigunguSelectColor.addEventListener('input', () => {
       updateSelectionStyles();
       updateSelectionDisplay();
     });
-    els.sigunguSelectHalf.addEventListener('change', () => {
-      updateSelectionStyles();
-      updateSelectionDisplay();
-    });
     els.emdSelectColor.addEventListener('input', () => {
-      updateSelectionStyles();
-      updateSelectionDisplay();
-    });
-    els.emdSelectHalf.addEventListener('change', () => {
       updateSelectionStyles();
       updateSelectionDisplay();
     });
@@ -482,16 +470,16 @@
       setupRouteLayer();
       setupSelectionLayers();
       
-      // 스타일 강제 적용
+      // 스타일 강제 적용 (script.js 패턴)
       setTimeout(() => {
         applyRuntimeColors();
         console.log('Runtime colors applied');
-      }, 500);
+      }, 100);
       
       setTimeout(() => {
         applyRuntimeColors();
         console.log('Runtime colors re-applied');
-      }, 2000);
+      }, 1000);
       
       console.log('Map loaded, setting up selectors...');
       
@@ -506,20 +494,33 @@
       setStatus('지도 로드됨 — 시도가 기본으로 활성화되었습니다.');
     });
 
+    // script.js 패턴: 스타일 변경 시 레이어 재생성 및 스타일 재적용
     map.on('style.load', ()=>{
-      console.log('Style loaded, reapplying custom styling...');
+      console.log('Style loaded, recreating layers and reapplying styling...');
+      
+      // 스타일 변경 시 모든 사용자 정의 레이어와 소스를 재생성해야 함
       hideAllLabels();
       setupRouteLayer();
       setupSelectionLayers();
 
-      // 스타일 즉시 적용
+      // 레이어 재생성
+      if(els.chkSido.checked) addLevel('sido');
+      if(els.chkSigungu.checked) addLevel('sigungu');
+      if(els.chkEmd.checked) addLevel('emd');
+
+      // 스타일 즉시 적용 (script.js 패턴)
       applyRuntimeColors();
       
       // 재적용으로 확실히
       setTimeout(() => {
         applyRuntimeColors();
         console.log('Runtime colors re-applied after style load');
-      }, 1000);
+      }, 500);
+
+      setTimeout(() => {
+        applyRuntimeColors();
+        console.log('Final runtime colors application');
+      }, 1500);
 
       console.log('Map style loaded, resetting selectors...');
 
@@ -528,10 +529,6 @@
         setupSelector('sigungu');
         setupSelector('emd');
       }, 500);
-
-      if(els.chkSido.checked) addLevel('sido');
-      if(els.chkSigungu.checked) addLevel('sigungu');
-      if(els.chkEmd.checked) addLevel('emd');
 
       updateSelectionStyles();
       updateSelectionFilters();
@@ -645,9 +642,8 @@
   }
 
   function getSelectionOpacity(lvl) {
-    if (lvl === 'sigungu') return els.sigunguSelectHalf.checked ? 0.5 : 1.0;
-    if (lvl === 'emd') return els.emdSelectHalf.checked ? 0.5 : 1.0;
-    return 0.5; // sido 기본 투명도
+    // 스타일에 따른 고정 불투명도 (script.js 패턴 적용)
+    return 0.8; // 모든 선택 영역에 고정 불투명도
   }
 
   function getBoundaryColor(lvl) {
