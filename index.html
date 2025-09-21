@@ -262,8 +262,8 @@
                 <input type="checkbox" id="showKoreaOnly" checked>
             </div>
             <div class="control-item">
-                <label>Waterways:</label>
-                <input type="checkbox" id="showWaterways">
+                <label>Water:</label>
+                <input type="checkbox" id="showWater">
             </div>
         </div>
 
@@ -424,23 +424,31 @@
                         }
                     },
                     {
-                        id: 'waterways',
-                        type: 'line',
+                        id: 'water',
+                        type: 'fill',
                         source: 'mapbox-streets',
-                        'source-layer': 'waterway',
+                        'source-layer': 'water',
                         layout: {
                             'visibility': 'none'
                         },
                         paint: {
-                            'line-color': '#4a90e2',
-                            'line-width': [
-                                'interpolate',
-                                ['linear'],
-                                ['zoom'],
-                                5, 0.5,
-                                10, 2,
-                                15, 4
-                            ]
+                            'fill-color': '#4a90e2',
+                            'fill-opacity': 0.8
+                        }
+                    },
+                    {
+                        id: 'admin-1-boundary',
+                        type: 'line',
+                        source: 'country-boundaries',
+                        'source-layer': 'country_boundaries',
+                        filter: [
+                            'all',
+                            ['==', 'admin_level', 1],
+                            ['==', 'iso_3166_1', 'KR']
+                        ],
+                        paint: {
+                            'line-color': '#333333',
+                            'line-width': 2
                         }
                     }
                 ]
@@ -503,25 +511,10 @@
         });
 
         function addBoundaryLayers() {
-            // 시도 boundaries (always visible, all zoom levels)
-            map.addLayer({
-                id: 'sido-boundaries',
-                type: 'line',
-                source: 'sido-source',
-                'source-layer': 'BND_SIDO_PG-b2cuck',
-                layout: {
-                    'visibility': 'visible'
-                },
-                paint: {
-                    'line-color': '#333333',
-                    'line-width': 2,
-                    'line-dasharray': [1, 0]
-                },
-                minzoom: 0,
-                maxzoom: 24
-            });
-
-            // 시군구 boundaries (initially hidden, all zoom levels when visible)
+            // admin-1-boundary is already added in the base style, just configure it
+            // No need to add 시도 boundaries separately since we're using admin-1-boundary
+            
+            // 시군구 boundaries with explicit zoom range override
             map.addLayer({
                 id: 'sigungu-boundaries',
                 type: 'line',
@@ -532,14 +525,18 @@
                 },
                 paint: {
                     'line-color': '#666666',
-                    'line-width': 1,
+                    'line-width': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        0, 1,
+                        24, 1
+                    ],
                     'line-dasharray': [1, 0]
-                },
-                minzoom: 0,
-                maxzoom: 24
+                }
             });
 
-            // 읍면동 boundaries (initially hidden, all zoom levels when visible)
+            // 읍면동 boundaries with explicit zoom range override
             map.addLayer({
                 id: 'eubmyeondong-boundaries',
                 type: 'line',
@@ -550,11 +547,15 @@
                 },
                 paint: {
                     'line-color': '#999999',
-                    'line-width': 0.5,
+                    'line-width': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        0, 0.5,
+                        24, 0.5
+                    ],
                     'line-dasharray': [1, 0]
-                },
-                minzoom: 0,
-                maxzoom: 24
+                }
             });
         }
 
@@ -814,7 +815,7 @@
         document.getElementById('oceanColor').addEventListener('change', updateMapStyle);
         document.getElementById('landColor').addEventListener('change', updateMapStyle);
         document.getElementById('showKoreaOnly').addEventListener('change', toggleKoreaOnly);
-        document.getElementById('showWaterways').addEventListener('change', toggleWaterways);
+        document.getElementById('showWater').addEventListener('change', toggleWater);
 
         // 시도 boundary controls
         document.getElementById('sidoBoundaryColor').addEventListener('change', () => updateBoundaryStyle('sido'));
