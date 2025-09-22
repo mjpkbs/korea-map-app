@@ -86,6 +86,16 @@
             cursor: pointer;
         }
 
+        select {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+
         .admin-section {
             margin-bottom: 20px;
         }
@@ -240,6 +250,16 @@
             color: #666;
             font-style: italic;
         }
+
+        .color-controls {
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .color-controls.disabled {
+            opacity: 0.3;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -250,12 +270,23 @@
         <div class="control-group">
             <h3>Map Style</h3>
             <div class="control-item">
-                <label>Ocean:</label>
-                <input type="color" id="oceanColor" value="#a6cee3">
+                <label>Style:</label>
+                <select id="mapStyle">
+                    <option value="monochrome">단색</option>
+                    <option value="satellite">Satellite</option>
+                    <option value="road">Road</option>
+                    <option value="road_bright">Road Bright</option>
+                </select>
             </div>
-            <div class="control-item">
-                <label>Land:</label>
-                <input type="color" id="landColor" value="#f0f0f0">
+            <div class="color-controls" id="colorControls">
+                <div class="control-item">
+                    <label>Ocean:</label>
+                    <input type="color" id="oceanColor" value="#a6cee3">
+                </div>
+                <div class="control-item">
+                    <label>Land:</label>
+                    <input type="color" id="landColor" value="#f0f0f0">
+                </div>
             </div>
             <div class="control-item">
                 <label>한국만 보이기:</label>
@@ -391,60 +422,17 @@
         // Initialize Mapbox
         mapboxgl.accessToken = 'pk.eyJ1IjoibW1qanBwIiwiYSI6ImNtZmZnM3RwODBoYnEya3B6bnB3NW5zcHQifQ.6UON_8x8X84bxsCrURuggA';
 
+        // Map styles configuration
+        const mapStyles = {
+            monochrome: 'mapbox://styles/mmjjpp/cmfto0pnq00hv01r814rrhzgc',
+            satellite: 'mapbox://styles/mmjjpp/cmfuo9ni000j701rf3ha412sg',
+            road: 'mapbox://styles/mmjjpp/cmfuohp8700go01sj1hv65fa0',
+            road_bright: 'mapbox://styles/mmjjpp/cmfuoqlot00ix01r80bzu6p8t'
+        };
+
         const map = new mapboxgl.Map({
             container: 'map',
-            style: {
-                version: 8,
-                sources: {
-                    'country-boundaries': {
-                        type: 'vector',
-                        url: 'mapbox://mapbox.country-boundaries-v1'
-                    },
-                    'mapbox-streets': {
-                        type: 'vector',
-                        url: 'mapbox://mapbox.mapbox-streets-v8'
-                    }
-                },
-                layers: [
-                    {
-                        id: 'background',
-                        type: 'background',
-                        paint: {
-                            'background-color': '#a6cee3'
-                        }
-                    },
-                    {
-                        id: 'land',
-                        type: 'fill',
-                        source: 'country-boundaries',
-                        'source-layer': 'country_boundaries',
-                        filter: ['==', 'iso_3166_1', 'KR'],
-                        paint: {
-                            'fill-color': '#f0f0f0'
-                        }
-                    },
-                    {
-                        id: 'waterways',
-                        type: 'line',
-                        source: 'mapbox-streets',
-                        'source-layer': 'waterway',
-                        layout: {
-                            'visibility': 'none'
-                        },
-                        paint: {
-                            'line-color': '#4a90e2',
-                            'line-width': [
-                                'interpolate',
-                                ['linear'],
-                                ['zoom'],
-                                5, 0.5,
-                                10, 2,
-                                15, 4
-                            ]
-                        }
-                    }
-                ]
-            },
+            style: mapStyles.monochrome, // Default to 단색
             center: [127.7669, 35.9078],
             zoom: 6
         });
@@ -471,9 +459,17 @@
             }
         };
 
+        let currentStyle = 'monochrome';
+
         // Initialize map
         map.on('load', () => {
-            // Add sources
+            // Add country boundaries source for Korea filtering
+            map.addSource('country-boundaries-source', {
+                type: 'vector',
+                url: 'mapbox://mmjjpp.country_boundaries' // Your custom tileset
+            });
+
+            // Add admin sources
             map.addSource('sido-source', {
                 type: 'vector',
                 url: `mapbox://${adminData.sido.tileset}`
@@ -489,6 +485,9 @@
                 url: `mapbox://${adminData.eubmyeondong.tileset}`
             });
 
+            // Add custom layers for monochrome style
+            addCustomLayers();
+
             // Add boundary layers
             addBoundaryLayers();
 
@@ -498,9 +497,58 @@
             // Load administrative names
             loadAdminNames();
 
-            // Initialize map style with current color values
-            updateMapStyle();
+            // Set initial Korea filter
+            toggleKoreaOnly();
         });
+
+        function addCustomLayers() {
+            // Add custom background and land layers for monochrome style
+            map.addLayer({
+                id: 'custom-background',
+                type: 'background',
+                paint: {
+                    'background-color': '#a6cee3'
+                },
+                layout: {
+                    'visibility': 'visible'
+                }
+            });
+
+            map.addLayer({
+                id: 'custom-land',
+                type: 'fill',
+                source: 'country-boundaries-source',
+                'source-layer': 'country_boundaries', // Adjust this to match your layer name
+                filter: ['==', 'id', 13766778], // Korea boundary filter
+                paint: {
+                    'fill-color': '#f0f0f0'
+                },
+                layout: {
+                    'visibility': 'visible'
+                }
+            });
+
+            map.addLayer({
+                id: 'custom-waterways',
+                type: 'line',
+                source: 'mapbox://mapbox.mapbox-streets-v8',
+                'source-layer': 'waterway',
+                layout: {
+                    'visibility': 'none'
+                },
+                paint: {
+                    'line-color': '#4a90e2',
+                    'line-width': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        5, 0.5,
+                        10, 2,
+                        15, 4
+                    ]
+                }
+            });
+        }
 
         function addBoundaryLayers() {
             // 시도 boundaries (always visible, all zoom levels)
@@ -521,7 +569,7 @@
                 maxzoom: 24
             });
 
-            // 시군구 boundaries (initially hidden, all zoom levels when visible)
+            // 시군구 boundaries
             map.addLayer({
                 id: 'sigungu-boundaries',
                 type: 'line',
@@ -539,7 +587,7 @@
                 maxzoom: 24
             });
 
-            // 읍면동 boundaries (initially hidden, all zoom levels when visible)
+            // 읍면동 boundaries
             map.addLayer({
                 id: 'eubmyeondong-boundaries',
                 type: 'line',
@@ -559,7 +607,7 @@
         }
 
         function addFillLayers() {
-            // 시도 fills (all zoom levels)
+            // 시도 fills
             map.addLayer({
                 id: 'sido-fill',
                 type: 'fill',
@@ -578,7 +626,7 @@
                 maxzoom: 24
             }, 'sido-boundaries');
 
-            // 시군구 fills (all zoom levels)
+            // 시군구 fills
             map.addLayer({
                 id: 'sigungu-fill',
                 type: 'fill',
@@ -597,7 +645,7 @@
                 maxzoom: 24
             }, 'sigungu-boundaries');
 
-            // 읍면동 fills (all zoom levels)
+            // 읍면동 fills
             map.addLayer({
                 id: 'eubmyeondong-fill',
                 type: 'fill',
@@ -615,6 +663,78 @@
                 minzoom: 0,
                 maxzoom: 24
             }, 'eubmyeondong-boundaries');
+        }
+
+        // Map style change functionality
+        function changeMapStyle(styleKey) {
+            currentStyle = styleKey;
+            map.setStyle(mapStyles[styleKey]);
+            
+            // Toggle color controls based on style
+            const colorControls = document.getElementById('colorControls');
+            if (styleKey === 'monochrome') {
+                colorControls.classList.remove('disabled');
+                
+                // Re-add custom layers after style change
+                map.once('styledata', () => {
+                    // Re-add all sources and layers
+                    addCountryBoundariesSource();
+                    addAdminSources();
+                    addCustomLayers();
+                    addBoundaryLayers();
+                    addFillLayers();
+                    
+                    // Reapply all settings
+                    updateMapStyle();
+                    toggleKoreaOnly();
+                    toggleWaterways();
+                    updateAllBoundaryStyles();
+                    updateAllFillLayers();
+                });
+            } else {
+                colorControls.classList.add('disabled');
+                
+                // For non-monochrome styles, we still need our admin layers
+                map.once('styledata', () => {
+                    addAdminSources();
+                    addBoundaryLayers();
+                    addFillLayers();
+                    updateAllBoundaryStyles();
+                    updateAllFillLayers();
+                });
+            }
+        }
+
+        function addCountryBoundariesSource() {
+            if (!map.getSource('country-boundaries-source')) {
+                map.addSource('country-boundaries-source', {
+                    type: 'vector',
+                    url: 'mapbox://mmjjpp.country_boundaries'
+                });
+            }
+        }
+
+        function addAdminSources() {
+            if (!map.getSource('sido-source')) {
+                map.addSource('sido-source', {
+                    type: 'vector',
+                    url: `mapbox://${adminData.sido.tileset}`
+                });
+            }
+
+            if (!map.getSource('sigungu-source')) {
+                map.addSource('sigungu-source', {
+                    type: 'vector',
+                    url: `mapbox://${adminData.sigungu.tileset}`
+                });
+            }
+
+            if (!map.getSource('eubmyeondong-source')) {
+                map.addSource('eubmyeondong-source', {
+                    type: 'vector',
+                    url: `mapbox://${adminData.eubmyeondong.tileset}`
+                });
+            }
         }
 
         async function loadAdminNames() {
@@ -679,14 +799,14 @@
             // Comprehensive 읍면동 list (sample - would need full list from actual data)
             adminData.eubmyeondong.names = [
                 // 서울 주요 동
-                '명동', '충무로', '을지로동', '신당동', '다산동', '약수동', '청구동', '신당동', '황학동', '중림동',
+                '명동', '충무로', '석지로동', '신당동', '다산동', '약수동', '청구동', '신당동', '황학동', '중림동',
                 '후암동', '용산동', '한강로동', '이촌동', '한남동', '서빙고동', '보광동', '청파동', '원효로동',
                 '왕십리동', '마장동', '사근동', '행당동', '응봉동', '금호동', '옥수동', '성수동', '송정동',
                 '용답동', '중곡동', '능동', '구의동', '광장동', '자양동', '화양동', '군자동', '중화동',
                 '전농동', '답십리동', '장안동', '청량리동', '회기동', '휘경동', '이문동', '용두동', '제기동',
                 '신설동', '면목동', '상봉동', '중화동', '묵동', '망우동', '신내동',
                 '성북동', '삼선동', '동선동', '돈암동', '안암동', '보문동', '정릉동', '길음동', '종암동',
-                '미아동', '번동', '수유동', '우이동', '쌍문동', '방학동', '도봉동', '창동', '상계동',
+                '미아동', '번동', '수유동', '우이동', '음문동', '방학동', '도봉동', '창동', '상계동',
                 '중계동', '하계동', '공릉동', '월계동', '노원동', '상월곡동', '중월곡동', '하월곡동',
                 '응암동', '역촌동', '불광동', '구산동', '대조동', '진관동', '신사동', '연희동', '홍제동',
                 '홍은동', '남가좌동', '북가좌동', '충현동', '현저동', '홍지동', '신촌동', '연남동', '성산동',
@@ -758,7 +878,6 @@
             });
             
             input.addEventListener('blur', function() {
-                // Delay hiding to allow for clicks on suggestions
                 setTimeout(() => hideSuggestions(suggestionsDiv), 150);
             });
             
@@ -811,23 +930,20 @@
         }
 
         // Control event listeners
+        document.getElementById('mapStyle').addEventListener('change', (e) => changeMapStyle(e.target.value));
         document.getElementById('oceanColor').addEventListener('change', updateMapStyle);
         document.getElementById('landColor').addEventListener('change', updateMapStyle);
         document.getElementById('showKoreaOnly').addEventListener('change', toggleKoreaOnly);
         document.getElementById('showWaterways').addEventListener('change', toggleWaterways);
 
-        // 시도 boundary controls
+        // Boundary control listeners
         document.getElementById('sidoBoundaryColor').addEventListener('change', () => updateBoundaryStyle('sido'));
         document.getElementById('sidoBoundaryWidth').addEventListener('input', () => updateBoundaryStyle('sido'));
         document.getElementById('sidoDashedBoundary').addEventListener('change', () => updateBoundaryStyle('sido'));
-
-        // 시군구 boundary controls
         document.getElementById('showSigunguBoundary').addEventListener('change', toggleBoundaryVisibility);
         document.getElementById('sigunguBoundaryColor').addEventListener('change', () => updateBoundaryStyle('sigungu'));
         document.getElementById('sigunguBoundaryWidth').addEventListener('input', () => updateBoundaryStyle('sigungu'));
         document.getElementById('sigunguDashedBoundary').addEventListener('change', () => updateBoundaryStyle('sigungu'));
-
-        // 읍면동 boundary controls
         document.getElementById('showEubmyeondongBoundary').addEventListener('change', toggleBoundaryVisibility);
         document.getElementById('eubmyeondongBoundaryColor').addEventListener('change', () => updateBoundaryStyle('eubmyeondong'));
         document.getElementById('eubmyeondongBoundaryWidth').addEventListener('input', () => updateBoundaryStyle('eubmyeondong'));
@@ -845,34 +961,39 @@
         });
 
         function updateMapStyle() {
+            if (currentStyle !== 'monochrome') return;
+            
             const oceanColor = document.getElementById('oceanColor').value;
             const landColor = document.getElementById('landColor').value;
             
             // Update ocean/background color
-            map.setPaintProperty('background', 'background-color', oceanColor);
+            if (map.getLayer('custom-background')) {
+                map.setPaintProperty('custom-background', 'background-color', oceanColor);
+            }
             
             // Update land color
-            if (map.getLayer('land')) {
-                map.setPaintProperty('land', 'fill-color', landColor);
+            if (map.getLayer('custom-land')) {
+                map.setPaintProperty('custom-land', 'fill-color', landColor);
             }
         }
 
         function toggleKoreaOnly() {
             const showKoreaOnly = document.getElementById('showKoreaOnly').checked;
             
-            if (showKoreaOnly) {
-                // Show only Korea
-                map.setFilter('land', ['==', 'iso_3166_1', 'KR']);
-            } else {
-                // Show all countries
-                map.setFilter('land', null);
+            if (currentStyle === 'monochrome') {
+                if (map.getLayer('custom-land')) {
+                    map.setLayoutProperty('custom-land', 'visibility', showKoreaOnly ? 'visible' : 'none');
+                }
             }
+            // For other styles, the base map handles the display
         }
 
         function toggleWaterways() {
             const showWaterways = document.getElementById('showWaterways').checked;
             
-            map.setLayoutProperty('waterways', 'visibility', showWaterways ? 'visible' : 'none');
+            if (currentStyle === 'monochrome' && map.getLayer('custom-waterways')) {
+                map.setLayoutProperty('custom-waterways', 'visibility', showWaterways ? 'visible' : 'none');
+            }
         }
 
         function updateBoundaryStyle(type) {
@@ -883,17 +1004,29 @@
             const dashArray = isDashed ? [2, 2] : [1, 0];
             const layerId = `${type}-boundaries`;
             
-            map.setPaintProperty(layerId, 'line-color', boundaryColor);
-            map.setPaintProperty(layerId, 'line-width', boundaryWidth);
-            map.setPaintProperty(layerId, 'line-dasharray', dashArray);
+            if (map.getLayer(layerId)) {
+                map.setPaintProperty(layerId, 'line-color', boundaryColor);
+                map.setPaintProperty(layerId, 'line-width', boundaryWidth);
+                map.setPaintProperty(layerId, 'line-dasharray', dashArray);
+            }
+        }
+
+        function updateAllBoundaryStyles() {
+            updateBoundaryStyle('sido');
+            updateBoundaryStyle('sigungu');
+            updateBoundaryStyle('eubmyeondong');
         }
 
         function toggleBoundaryVisibility() {
             const showSigungu = document.getElementById('showSigunguBoundary').checked;
             const showEubmyeondong = document.getElementById('showEubmyeondongBoundary').checked;
             
-            map.setLayoutProperty('sigungu-boundaries', 'visibility', showSigungu ? 'visible' : 'none');
-            map.setLayoutProperty('eubmyeondong-boundaries', 'visibility', showEubmyeondong ? 'visible' : 'none');
+            if (map.getLayer('sigungu-boundaries')) {
+                map.setLayoutProperty('sigungu-boundaries', 'visibility', showSigungu ? 'visible' : 'none');
+            }
+            if (map.getLayer('eubmyeondong-boundaries')) {
+                map.setLayoutProperty('eubmyeondong-boundaries', 'visibility', showEubmyeondong ? 'visible' : 'none');
+            }
         }
 
         function addSelection(type) {
@@ -949,12 +1082,20 @@
                 colorMap[name] = color;
             });
             
-            map.setPaintProperty(`${type}-fill`, 'fill-color', [
-                'case',
-                ['has', ['get', adminData[type].field], ['literal', colorMap]],
-                ['get', ['get', adminData[type].field], ['literal', colorMap]],
-                'rgba(0,0,0,0)'
-            ]);
+            if (map.getLayer(`${type}-fill`)) {
+                map.setPaintProperty(`${type}-fill`, 'fill-color', [
+                    'case',
+                    ['has', ['get', adminData[type].field], ['literal', colorMap]],
+                    ['get', ['get', adminData[type].field], ['literal', colorMap]],
+                    'rgba(0,0,0,0)'
+                ]);
+            }
+        }
+
+        function updateAllFillLayers() {
+            updateFillLayer('sido');
+            updateFillLayer('sigungu');
+            updateFillLayer('eubmyeondong');
         }
 
         // Add click handlers for interactive selection
@@ -980,12 +1121,10 @@
         });
 
         // Add cursor style for clickable areas
-        map.on('mouseenter', 'sido-fill', () => map.getCanvas().style.cursor = 'pointer');
-        map.on('mouseleave', 'sido-fill', () => map.getCanvas().style.cursor = '');
-        map.on('mouseenter', 'sigungu-fill', () => map.getCanvas().style.cursor = 'pointer');
-        map.on('mouseleave', 'sigungu-fill', () => map.getCanvas().style.cursor = '');
-        map.on('mouseenter', 'eubmyeondong-fill', () => map.getCanvas().style.cursor = 'pointer');
-        map.on('mouseleave', 'eubmyeondong-fill', () => map.getCanvas().style.cursor = '');
+        ['sido-fill', 'sigungu-fill', 'eubmyeondong-fill'].forEach(layerId => {
+            map.on('mouseenter', layerId, () => map.getCanvas().style.cursor = 'pointer');
+            map.on('mouseleave', layerId, () => map.getCanvas().style.cursor = '');
+        });
 
         // Close autocomplete suggestions when clicking outside
         document.addEventListener('click', function(e) {
