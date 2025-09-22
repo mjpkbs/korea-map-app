@@ -251,12 +251,10 @@
                 <div class="form-row">
                     <label>스타일:</label>
                     <select id="map-style">
-                        <option value="basic">단색 (기본)</option>
-                        <option value="mapbox://styles/mapbox/satellite-v9">위성</option>
-                        <option value="mapbox://styles/mapbox/streets-v11">Streets</option>
-                        <option value="mapbox://styles/mapbox/outdoors-v11">Outdoors</option>
-                        <option value="mapbox://styles/mapbox/light-v10">Light</option>
-                        <option value="mapbox://styles/mapbox/dark-v10">Dark</option>
+                        <option value="mapbox://styles/mmjjpp/cmfto0pnq00hv01r814rrhzgc">단색</option>
+                        <option value="mapbox://styles/mmjjpp/cmfuo9ni000j701rf3ha412sg">Satellite</option>
+                        <option value="mapbox://styles/mmjjpp/cmfuohp8700go01sj1hv65fa0">Road</option>
+                        <option value="mapbox://styles/mmjjpp/cmfuoqlot00ix01r80bzu6p8t">Road_Bright</option>
                     </select>
                 </div>
             </div>
@@ -379,7 +377,7 @@
     </div>
 
     <script>
-        // Mapbox access token - 실제 토큰으로 교체하세요
+        // Mapbox access token
         mapboxgl.accessToken = 'pk.eyJ1IjoibW1qanBwIiwiYSI6ImNtZmZnM3RwODBoYnEya3B6bnB3NW5zcHQifQ.6UON_8x8X84bxsCrURuggA';
         
         let map;
@@ -392,7 +390,7 @@
         function initMap() {
             map = new mapboxgl.Map({
                 container: 'map',
-                style: 'mapbox://styles/mapbox/light-v10',
+                style: 'mapbox://styles/mmjjpp/cmfto0pnq00hv01r814rrhzgc', // 단색 기본 스타일
                 center: [127.7669, 35.9078], // South Korea center
                 zoom: 6.5,
                 preserveDrawingBuffer: true // For PNG export
@@ -409,51 +407,10 @@
             document.getElementById('geocoder').appendChild(geocoder.onAdd(map));
             
             map.on('load', function() {
-                setupBasicStyle();
                 loadAdministrativeBoundaries();
                 setupEventListeners();
                 setupRouteDrawing();
                 showStatus('지도가 로드되었습니다.', 'success');
-            });
-        }
-        
-        // Setup basic map style
-        function setupBasicStyle() {
-            // Add basic background
-            map.addLayer({
-                'id': 'background',
-                'type': 'background',
-                'paint': {
-                    'background-color': '#0f3564'
-                }
-            });
-            
-            // Add water layer
-            map.addLayer({
-                'id': 'water',
-                'type': 'fill',
-                'source': {
-                    'type': 'vector',
-                    'url': 'mapbox://mapbox.mapbox-streets-v8'
-                },
-                'source-layer': 'water',
-                'paint': {
-                    'fill-color': '#0f3564'
-                }
-            });
-            
-            // Add land layer
-            map.addLayer({
-                'id': 'land',
-                'type': 'fill',
-                'source': {
-                    'type': 'vector',
-                    'url': 'mapbox://mapbox.mapbox-streets-v8'
-                },
-                'source-layer': 'landuse',
-                'paint': {
-                    'fill-color': '#8896a1'
-                }
             });
         }
         
@@ -641,10 +598,6 @@
         function setupEventListeners() {
             // Style selector
             document.getElementById('map-style').addEventListener('change', function(e) {
-                if (e.target.value === 'basic') {
-                    // Keep current custom style
-                    return;
-                }
                 map.setStyle(e.target.value);
                 map.once('styledata', function() {
                     loadAdministrativeBoundaries();
@@ -653,16 +606,28 @@
             
             // Color controls
             document.getElementById('water-color').addEventListener('input', function(e) {
-                if (map.getLayer('water')) {
-                    map.setPaintProperty('water', 'fill-color', e.target.value);
-                }
-                map.setPaintProperty('background', 'background-color', e.target.value);
+                // Try to update water color in user's custom style
+                const waterLayers = ['water', 'background'];
+                waterLayers.forEach(layerId => {
+                    if (map.getLayer(layerId)) {
+                        const layerType = map.getLayer(layerId).type;
+                        if (layerType === 'background') {
+                            map.setPaintProperty(layerId, 'background-color', e.target.value);
+                        } else if (layerType === 'fill') {
+                            map.setPaintProperty(layerId, 'fill-color', e.target.value);
+                        }
+                    }
+                });
             });
             
             document.getElementById('land-color').addEventListener('input', function(e) {
-                if (map.getLayer('land')) {
-                    map.setPaintProperty('land', 'fill-color', e.target.value);
-                }
+                // Try to update land color in user's custom style
+                const landLayers = ['land', 'landuse', 'landcover'];
+                landLayers.forEach(layerId => {
+                    if (map.getLayer(layerId)) {
+                        map.setPaintProperty(layerId, 'fill-color', e.target.value);
+                    }
+                });
             });
             
             document.getElementById('border-color').addEventListener('input', function(e) {
