@@ -514,18 +514,22 @@
                 }
             });
 
+            // Add Korea land layer using country_boundaries
             map.addLayer({
                 id: 'custom-land',
                 type: 'fill',
                 source: 'country-boundaries-source',
-                'source-layer': 'country_boundaries', // Adjust this to match your layer name
-                filter: ['==', 'id', 13766778], // Korea boundary filter
+                'source-layer': 'country_boundaries',
+                filter: ['==', 'id', 13766778],
                 paint: {
-                    'fill-color': '#f0f0f0'
+                    'fill-color': '#f0f0f0',
+                    'fill-opacity': 1
                 },
                 layout: {
                     'visibility': 'visible'
-                }
+                },
+                minzoom: 0,
+                maxzoom: 24
             });
 
             map.addLayer({
@@ -562,11 +566,17 @@
                 },
                 paint: {
                     'line-color': '#333333',
-                    'line-width': 2,
+                    'line-width': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        0, 0.5,
+                        5, 1,
+                        10, 2,
+                        15, 3
+                    ],
                     'line-dasharray': [1, 0]
-                },
-                minzoom: 0,
-                maxzoom: 24
+                }
             });
 
             // 시군구 boundaries
@@ -580,11 +590,17 @@
                 },
                 paint: {
                     'line-color': '#666666',
-                    'line-width': 1,
+                    'line-width': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        0, 0.3,
+                        5, 0.5,
+                        10, 1,
+                        15, 2
+                    ],
                     'line-dasharray': [1, 0]
-                },
-                minzoom: 0,
-                maxzoom: 24
+                }
             });
 
             // 읍면동 boundaries
@@ -598,16 +614,22 @@
                 },
                 paint: {
                     'line-color': '#999999',
-                    'line-width': 0.5,
+                    'line-width': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        0, 0.2,
+                        5, 0.3,
+                        10, 0.5,
+                        15, 1
+                    ],
                     'line-dasharray': [1, 0]
-                },
-                minzoom: 0,
-                maxzoom: 24
+                }
             });
         }
 
         function addFillLayers() {
-            // 시도 fills
+            // 시도 fills (visible at all zoom levels with opacity scaling)
             map.addLayer({
                 id: 'sido-fill',
                 type: 'fill',
@@ -620,13 +642,18 @@
                         ['get', ['get', 'SIDO_NM'], ['literal', {}]],
                         'rgba(0,0,0,0)'
                     ],
-                    'fill-opacity': 0.7
-                },
-                minzoom: 0,
-                maxzoom: 24
+                    'fill-opacity': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        0, 0.6,
+                        5, 0.7,
+                        15, 0.8
+                    ]
+                }
             }, 'sido-boundaries');
 
-            // 시군구 fills
+            // 시군구 fills (visible at all zoom levels)
             map.addLayer({
                 id: 'sigungu-fill',
                 type: 'fill',
@@ -639,13 +666,18 @@
                         ['get', ['get', 'SIGUNGU_NM'], ['literal', {}]],
                         'rgba(0,0,0,0)'
                     ],
-                    'fill-opacity': 0.7
-                },
-                minzoom: 0,
-                maxzoom: 24
+                    'fill-opacity': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        0, 0.6,
+                        5, 0.7,
+                        15, 0.8
+                    ]
+                }
             }, 'sigungu-boundaries');
 
-            // 읍면동 fills
+            // 읍면동 fills (visible at all zoom levels)
             map.addLayer({
                 id: 'eubmyeondong-fill',
                 type: 'fill',
@@ -658,10 +690,15 @@
                         ['get', ['get', 'ADM_NM'], ['literal', {}]],
                         'rgba(0,0,0,0)'
                     ],
-                    'fill-opacity': 0.7
-                },
-                minzoom: 0,
-                maxzoom: 24
+                    'fill-opacity': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        0, 0.6,
+                        5, 0.7,
+                        15, 0.8
+                    ]
+                }
             }, 'eubmyeondong-boundaries');
         }
 
@@ -1139,24 +1176,90 @@
             });
         });
 
-        // Export to PNG function
+        // Export to PNG function - waits for map to fully load
         function exportToPNG() {
-            const canvas = map.getCanvas();
-            const link = document.createElement('a');
+            // Disable the export button temporarily
+            const exportBtn = document.querySelector('.export-btn');
+            const originalText = exportBtn.textContent;
+            exportBtn.textContent = '📷 Loading...';
+            exportBtn.disabled = true;
             
-            // Get current date and time for filename
-            const now = new Date();
-            const timestamp = now.toISOString().slice(0, 19).replace(/[:-]/g, '').replace('T', '_');
-            const filename = `korean_admin_map_${timestamp}.png`;
+            // Function to check if map is fully loaded
+            function waitForMapLoad() {
+                return new Promise((resolve) => {
+                    // Check if map is still loading
+                    if (!map.loaded()) {
+                        map.once('idle', resolve);
+                    } else {
+                        // Additional wait to ensure all tiles are rendered
+                        setTimeout(resolve, 500);
+                    }
+                });
+            }
             
-            // Convert canvas to blob and download
-            canvas.toBlob(function(blob) {
-                const url = URL.createObjectURL(blob);
-                link.href = url;
-                link.download = filename;
-                link.click();
-                URL.revokeObjectURL(url);
-            }, 'image/png');
+            // Function to ensure all sources are loaded
+            function waitForSourcesLoad() {
+                return new Promise((resolve) => {
+                    let loadingCount = 0;
+                    const sourceIds = ['sido-source', 'sigungu-source', 'eubmyeondong-source', 'country-boundaries-source'];
+                    
+                    sourceIds.forEach(sourceId => {
+                        const source = map.getSource(sourceId);
+                        if (source && source.loaded && !source.loaded()) {
+                            loadingCount++;
+                            source.on('data', function onData(e) {
+                                if (e.sourceDataType === 'metadata') {
+                                    source.off('data', onData);
+                                    loadingCount--;
+                                    if (loadingCount === 0) resolve();
+                                }
+                            });
+                        }
+                    });
+                    
+                    if (loadingCount === 0) resolve();
+                });
+            }
+            
+            // Wait for everything to load, then capture
+            Promise.all([waitForMapLoad(), waitForSourcesLoad()])
+                .then(() => {
+                    // Force a final render
+                    map.triggerRepaint();
+                    
+                    // Small delay to ensure final render is complete
+                    setTimeout(() => {
+                        const canvas = map.getCanvas();
+                        const link = document.createElement('a');
+                        
+                        // Get current date and time for filename
+                        const now = new Date();
+                        const timestamp = now.toISOString().slice(0, 19).replace(/[:-]/g, '').replace('T', '_');
+                        const filename = `korean_admin_map_${timestamp}.png`;
+                        
+                        // Convert canvas to blob and download
+                        canvas.toBlob(function(blob) {
+                            const url = URL.createObjectURL(blob);
+                            link.href = url;
+                            link.download = filename;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            URL.revokeObjectURL(url);
+                            
+                            // Re-enable the export button
+                            exportBtn.textContent = originalText;
+                            exportBtn.disabled = false;
+                        }, 'image/png', 1.0);
+                    }, 300);
+                })
+                .catch((error) => {
+                    console.error('Error during export:', error);
+                    // Re-enable the export button on error
+                    exportBtn.textContent = originalText;
+                    exportBtn.disabled = false;
+                    alert('Error exporting map. Please try again.');
+                });
         }
     </script>
 </body>
