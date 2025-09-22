@@ -3,15 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Korean Administrative Districts Map</title>
-    <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
-    <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet">
+    <title>한국 행정구역 지도 앱</title>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.1.0/mapbox-gl.js"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.1.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" type="text/css">
     <style>
-        body {
+        * {
             margin: 0;
             padding: 0;
-            font-family: 'Arial', sans-serif;
-            background-color: #f5f5f5;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f0f0;
         }
         
         #map {
@@ -19,24 +25,36 @@
             height: 100vh;
         }
         
-        .controls {
+        .control-panel {
             position: absolute;
             top: 10px;
-            left: 10px;
+            right: 10px;
             background: white;
-            padding: 15px;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             z-index: 1000;
-            max-width: 300px;
-            max-height: 80vh;
+            width: 320px;
+            max-height: 90vh;
             overflow-y: auto;
         }
         
+        .panel-header {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            border-radius: 8px 8px 0 0;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .panel-content {
+            padding: 15px;
+        }
+        
         .control-group {
-            margin-bottom: 15px;
-            padding-bottom: 10px;
+            margin-bottom: 20px;
             border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
         }
         
         .control-group:last-child {
@@ -44,46 +62,91 @@
             margin-bottom: 0;
         }
         
-        label {
-            display: block;
-            margin-bottom: 5px;
+        .control-title {
             font-weight: bold;
-            color: #333;
-        }
-        
-        select, input[type="text"], input[type="color"] {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            margin-bottom: 10px;
+            color: #2c3e50;
             font-size: 14px;
         }
         
-        input[type="color"] {
-            height: 40px;
-            padding: 2px;
-        }
-        
-        .checkbox-wrapper {
+        .form-row {
             display: flex;
             align-items: center;
-            gap: 8px;
+            margin-bottom: 8px;
+            gap: 10px;
         }
         
-        .checkbox-wrapper input[type="checkbox"] {
-            width: auto;
+        .form-row label {
+            min-width: 80px;
+            font-size: 12px;
+            color: #555;
         }
         
-        .selected-districts {
-            max-height: 200px;
-            overflow-y: auto;
-            background: #f9f9f9;
-            padding: 8px;
+        select, input[type="text"], input[type="color"], input[type="range"] {
+            flex: 1;
+            padding: 6px;
+            border: 1px solid #ddd;
             border-radius: 4px;
-            margin-top: 8px;
+            font-size: 12px;
         }
         
-        .district-item {
+        input[type="color"] {
+            height: 30px;
+            padding: 2px;
+            cursor: pointer;
+        }
+        
+        input[type="range"] {
+            height: 20px;
+        }
+        
+        input[type="checkbox"] {
+            transform: scale(1.2);
+            margin-right: 8px;
+        }
+        
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin: 2px;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #2980b9;
+        }
+        
+        button.danger {
+            background: #e74c3c;
+        }
+        
+        button.danger:hover {
+            background: #c0392b;
+        }
+        
+        button.success {
+            background: #27ae60;
+        }
+        
+        button.success:hover {
+            background: #219a52;
+        }
+        
+        .selected-regions {
+            max-height: 150px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 8px;
+        }
+        
+        .region-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -91,359 +154,836 @@
             margin: 2px 0;
             background: white;
             border-radius: 3px;
-            font-size: 12px;
+            font-size: 11px;
         }
         
-        .district-color {
-            width: 20px;
-            height: 20px;
-            border-radius: 3px;
-            border: 1px solid #ccc;
+        .region-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 2px;
+            margin-right: 8px;
         }
         
-        .remove-btn {
-            background: #ff4444;
-            color: white;
-            border: none;
-            border-radius: 3px;
-            padding: 2px 6px;
-            cursor: pointer;
-            font-size: 10px;
+        .search-container {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
         }
         
-        .remove-btn:hover {
-            background: #cc0000;
+        .route-controls {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            z-index: 1000;
         }
         
-        button {
-            background: #007cba;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
+        .route-controls button {
+            margin: 0 5px 5px 0;
+        }
+        
+        #route-info {
+            font-size: 11px;
+            color: #666;
             margin-top: 5px;
         }
         
-        button:hover {
-            background: #005c87;
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .slider-value {
+            min-width: 30px;
+            font-size: 11px;
+            color: #666;
+        }
+        
+        .geocoder {
+            width: 300px;
+        }
+        
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        
+        .status-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            font-size: 12px;
+            display: none;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
         }
     </style>
 </head>
 <body>
     <div id="map"></div>
     
-    <div class="controls">
-        <div class="control-group">
-            <label for="style-select">지도 스타일</label>
-            <select id="style-select">
-                <option value="mapbox://styles/mmjjpp/cmfto0pnq00hv01r814rrhzgc">단색</option>
-                <option value="mapbox://styles/mmjjpp/cmfuo9ni000j701rf3ha412sg">Satellite</option>
-                <option value="mapbox://styles/mmjjpp/cmfuohp8700go01sj1hv65fa0">Road</option>
-                <option value="mapbox://styles/mmjjpp/cmfuoqlot00ix01r80bzu6p8t">Road_Bright</option>
-            </select>
+    <!-- Search Box -->
+    <div class="search-container">
+        <div id="geocoder" class="geocoder"></div>
+    </div>
+    
+    <!-- Control Panel -->
+    <div class="control-panel">
+        <div class="panel-header">
+            한국 행정구역 지도 설정
         </div>
-        
-        <div class="control-group">
-            <div class="checkbox-wrapper">
-                <input type="checkbox" id="korea-boundary" checked>
-                <label for="korea-boundary">한국 경계 표시</label>
+        <div class="panel-content">
+            <div id="status" class="status-message"></div>
+            
+            <!-- Map Style -->
+            <div class="control-group">
+                <div class="control-title">지도 스타일</div>
+                <div class="form-row">
+                    <label>스타일:</label>
+                    <select id="map-style">
+                        <option value="basic">단색 (기본)</option>
+                        <option value="mapbox://styles/mapbox/satellite-v9">위성</option>
+                        <option value="mapbox://styles/mapbox/streets-v11">Streets</option>
+                        <option value="mapbox://styles/mapbox/outdoors-v11">Outdoors</option>
+                        <option value="mapbox://styles/mapbox/light-v10">Light</option>
+                        <option value="mapbox://styles/mapbox/dark-v10">Dark</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Map Colors -->
+            <div class="control-group">
+                <div class="control-title">지도 색상</div>
+                <div class="form-row">
+                    <label>바다색:</label>
+                    <input type="color" id="water-color" value="#0f3564">
+                </div>
+                <div class="form-row">
+                    <label>육지색:</label>
+                    <input type="color" id="land-color" value="#8896a1">
+                </div>
+                <div class="form-row">
+                    <label>경계선색:</label>
+                    <input type="color" id="border-color" value="#ffffff">
+                </div>
+            </div>
+            
+            <!-- Administrative Divisions -->
+            <div class="control-group">
+                <div class="control-title">행정구역 표시</div>
+                <div class="form-row">
+                    <input type="checkbox" id="show-sido" checked>
+                    <label>시도</label>
+                </div>
+                <div class="form-row">
+                    <input type="checkbox" id="show-sigungu" checked>
+                    <label>시군구</label>
+                </div>
+                <div class="form-row">
+                    <input type="checkbox" id="show-emd" checked>
+                    <label>읍면동</label>
+                </div>
+                <div class="form-row">
+                    <input type="checkbox" id="show-labels" checked>
+                    <label>라벨 표시</label>
+                </div>
+            </div>
+            
+            <!-- Country Boundary -->
+            <div class="control-group">
+                <div class="control-title">나라 경계선</div>
+                <div class="form-row">
+                    <input type="checkbox" id="show-country-border" checked>
+                    <label>경계선 표시</label>
+                </div>
+                <div class="form-row">
+                    <label>굵기:</label>
+                    <div class="slider-container">
+                        <input type="range" id="country-border-width" min="1" max="10" value="2">
+                        <span class="slider-value" id="country-border-width-value">2</span>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <input type="checkbox" id="country-border-dashed">
+                    <label>점선</label>
+                </div>
+            </div>
+            
+            <!-- Administrative Boundary -->
+            <div class="control-group">
+                <div class="control-title">행정구역 경계선</div>
+                <div class="form-row">
+                    <label>굵기:</label>
+                    <div class="slider-container">
+                        <input type="range" id="admin-border-width" min="0.5" max="5" step="0.5" value="1">
+                        <span class="slider-value" id="admin-border-width-value">1</span>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <input type="checkbox" id="admin-border-dashed">
+                    <label>점선</label>
+                </div>
+            </div>
+            
+            <!-- Region Selection -->
+            <div class="control-group">
+                <div class="control-title">행정구역 선택</div>
+                <div class="form-row">
+                    <label>레벨:</label>
+                    <select id="region-level">
+                        <option value="sido">시도</option>
+                        <option value="sigungu">시군구</option>
+                        <option value="emd">읍면동</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <label>색상:</label>
+                    <input type="color" id="selection-color" value="#ff4444">
+                </div>
+                <div class="form-row">
+                    <input type="text" id="region-search" placeholder="행정구역 이름 검색...">
+                    <button onclick="addRegion()">추가</button>
+                </div>
+                <div class="selected-regions" id="selected-regions">
+                    선택된 지역이 없습니다.
+                </div>
+                <button class="danger" onclick="clearAllRegions()">전체 제거</button>
+            </div>
+            
+            <!-- Export Functions -->
+            <div class="control-group">
+                <div class="control-title">내보내기</div>
+                <button class="success" onclick="exportMapAsPNG()">PNG 저장</button>
+                <button class="success" onclick="exportRouteAsSVG()">경로 SVG 저장</button>
             </div>
         </div>
-        
-        <div class="control-group">
-            <label for="district-color">선택 구역 색상</label>
-            <input type="color" id="district-color" value="#ff0000">
-        </div>
-        
-        <div class="control-group">
-            <label for="sigungu-search">시군구 검색</label>
-            <input type="text" id="sigungu-search" list="sigungu-list" placeholder="시군구를 입력하세요">
-            <datalist id="sigungu-list"></datalist>
-            <button onclick="addDistrict('sigungu')">시군구 추가</button>
-        </div>
-        
-        <div class="control-group">
-            <label for="dong-search">읍면동 검색</label>
-            <input type="text" id="dong-search" list="dong-list" placeholder="읍면동을 입력하세요">
-            <datalist id="dong-list"></datalist>
-            <button onclick="addDistrict('dong')">읍면동 추가</button>
-        </div>
-        
-        <div class="control-group">
-            <label>선택된 구역</label>
-            <div class="selected-districts" id="selected-districts">
-                선택된 구역이 없습니다.
-            </div>
-            <button onclick="clearAllDistricts()">전체 제거</button>
-        </div>
+    </div>
+    
+    <!-- Route Controls -->
+    <div class="route-controls">
+        <div style="font-weight: bold; margin-bottom: 5px;">경로 그리기</div>
+        <button onclick="startRoute()">경로 시작</button>
+        <button onclick="endRoute()">경로 완료</button>
+        <button class="danger" onclick="clearRoute()">경로 지우기</button>
+        <div id="route-info">지도를 클릭하여 경로를 그려보세요</div>
     </div>
 
     <script>
-        // Mapbox access token
-        mapboxgl.accessToken = 'pk.eyJ1IjoibW1qanBwIiwiYSI6ImNtZmZnM3RwODBoYnEya3B6bnB3NW5zcHQifQ.6UON_8x8X84bxsCrURuggA';
+        // Mapbox access token - 실제 토큰으로 교체하세요
+        mapboxgl.accessToken = 'YOUR_MAPBOX_ACCESS_TOKEN';
+        
+        let map;
+        let selectedRegions = [];
+        let routePoints = [];
+        let isDrawingRoute = false;
+        let routeLayerId = 'route-layer';
         
         // Initialize map
-        const map = new mapboxgl.Map({
-            container: 'map',
-            style: 'mapbox://styles/mmjjpp/cmfto0pnq00hv01r814rrhzgc', // Default 단색 style
-            center: [127.7669, 35.9078], // South Korea center
-            zoom: 6.5
-        });
+        function initMap() {
+            map = new mapboxgl.Map({
+                container: 'map',
+                style: 'mapbox://styles/mapbox/light-v10',
+                center: [127.7669, 35.9078], // South Korea center
+                zoom: 6.5,
+                preserveDrawingBuffer: true // For PNG export
+            });
+            
+            // Add geocoder
+            const geocoder = new MapboxGeocoder({
+                accessToken: mapboxgl.accessToken,
+                mapboxgl: mapboxgl,
+                countries: 'kr',
+                placeholder: '주소나 장소 검색...'
+            });
+            
+            document.getElementById('geocoder').appendChild(geocoder.onAdd(map));
+            
+            map.on('load', function() {
+                setupBasicStyle();
+                loadAdministrativeBoundaries();
+                setupEventListeners();
+                setupRouteDrawing();
+                showStatus('지도가 로드되었습니다.', 'success');
+            });
+        }
         
-        // Track selected districts
-        let selectedDistricts = [];
-        let distinctNames = {
-            sigungu: new Set(),
-            dong: new Set()
-        };
+        // Setup basic map style
+        function setupBasicStyle() {
+            // Add basic background
+            map.addLayer({
+                'id': 'background',
+                'type': 'background',
+                'paint': {
+                    'background-color': '#0f3564'
+                }
+            });
+            
+            // Add water layer
+            map.addLayer({
+                'id': 'water',
+                'type': 'fill',
+                'source': {
+                    'type': 'vector',
+                    'url': 'mapbox://mapbox.mapbox-streets-v8'
+                },
+                'source-layer': 'water',
+                'paint': {
+                    'fill-color': '#0f3564'
+                }
+            });
+            
+            // Add land layer
+            map.addLayer({
+                'id': 'land',
+                'type': 'fill',
+                'source': {
+                    'type': 'vector',
+                    'url': 'mapbox://mapbox.mapbox-streets-v8'
+                },
+                'source-layer': 'landuse',
+                'paint': {
+                    'fill-color': '#8896a1'
+                }
+            });
+        }
         
-        map.on('load', function() {
-            // Add Korea boundary source and layer
-            map.addSource('korea-boundary', {
-                'type': 'vector',
-                'url': 'mapbox://mapbox.country-boundaries-v1'
+        // Load administrative boundaries from GeoJSON files
+        async function loadAdministrativeBoundaries() {
+            try {
+                // Load GeoJSON files
+                const [sidoResponse, sigunguResponse, emdResponse] = await Promise.all([
+                    fetch('./sido.geojson'),
+                    fetch('./sigungu.geojson'),
+                    fetch('./emd.geojson')
+                ]);
+                
+                const sidoData = await sidoResponse.json();
+                const sigunguData = await sigunguResponse.json();
+                const emdData = await emdResponse.json();
+                
+                // Add sources
+                map.addSource('sido-source', {
+                    'type': 'geojson',
+                    'data': sidoData
+                });
+                
+                map.addSource('sigungu-source', {
+                    'type': 'geojson',
+                    'data': sigunguData
+                });
+                
+                map.addSource('emd-source', {
+                    'type': 'geojson',
+                    'data': emdData
+                });
+                
+                // Add boundary layers
+                addBoundaryLayers();
+                addLabelLayers();
+                
+                showStatus('행정구역 데이터가 로드되었습니다.', 'success');
+                
+            } catch (error) {
+                console.error('Error loading administrative boundaries:', error);
+                showStatus('행정구역 데이터 로드 중 오류가 발생했습니다.', 'error');
+            }
+        }
+        
+        // Add boundary layers
+        function addBoundaryLayers() {
+            // Sido boundaries
+            map.addLayer({
+                'id': 'sido-fill',
+                'type': 'fill',
+                'source': 'sido-source',
+                'paint': {
+                    'fill-color': 'transparent',
+                    'fill-outline-color': '#ffffff'
+                }
             });
             
             map.addLayer({
-                'id': 'korea-boundary-layer',
+                'id': 'sido-line',
                 'type': 'line',
-                'source': 'korea-boundary',
+                'source': 'sido-source',
+                'paint': {
+                    'line-color': '#ffffff',
+                    'line-width': 1
+                }
+            });
+            
+            // Sigungu boundaries
+            map.addLayer({
+                'id': 'sigungu-fill',
+                'type': 'fill',
+                'source': 'sigungu-source',
+                'paint': {
+                    'fill-color': 'transparent',
+                    'fill-outline-color': '#ffffff'
+                }
+            });
+            
+            map.addLayer({
+                'id': 'sigungu-line',
+                'type': 'line',
+                'source': 'sigungu-source',
+                'paint': {
+                    'line-color': '#ffffff',
+                    'line-width': 1
+                }
+            });
+            
+            // Emd boundaries
+            map.addLayer({
+                'id': 'emd-fill',
+                'type': 'fill',
+                'source': 'emd-source',
+                'paint': {
+                    'fill-color': 'transparent',
+                    'fill-outline-color': '#ffffff'
+                }
+            });
+            
+            map.addLayer({
+                'id': 'emd-line',
+                'type': 'line',
+                'source': 'emd-source',
+                'paint': {
+                    'line-color': '#ffffff',
+                    'line-width': 1
+                }
+            });
+            
+            // Country boundary
+            map.addLayer({
+                'id': 'country-boundary',
+                'type': 'line',
+                'source': {
+                    'type': 'vector',
+                    'url': 'mapbox://mapbox.country-boundaries-v1'
+                },
                 'source-layer': 'country_boundaries',
                 'filter': ['==', 'iso_3166_1', 'KR'],
                 'paint': {
                     'line-color': '#000000',
-                    'line-width': 2,
-                    'line-opacity': 0.8
+                    'line-width': 2
                 }
-            });
-            
-            // Add administrative district sources
-            map.addSource('sigungu-source', {
-                'type': 'vector',
-                'url': 'mapbox://mmjjpp.b4x5ixng'
-            });
-            
-            map.addSource('dong-source', {
-                'type': 'vector',
-                'url': 'mapbox://mmjjpp.53755csu'
-            });
-            
-            // Load district names for datalists
-            loadDistrictNames();
-        });
-        
-        // Style selector
-        document.getElementById('style-select').addEventListener('change', function(e) {
-            map.setStyle(e.target.value);
-            
-            // Re-add sources and layers after style change
-            map.once('styledata', function() {
-                // Re-add Korea boundary
-                if (document.getElementById('korea-boundary').checked) {
-                    addKoreaBoundary();
-                }
-                
-                // Re-add district sources
-                addDistrictSources();
-                
-                // Re-apply selected districts
-                reapplySelectedDistricts();
-            });
-        });
-        
-        // Korea boundary toggle
-        document.getElementById('korea-boundary').addEventListener('change', function(e) {
-            if (e.target.checked) {
-                addKoreaBoundary();
-            } else {
-                if (map.getLayer('korea-boundary-layer')) {
-                    map.removeLayer('korea-boundary-layer');
-                }
-                if (map.getSource('korea-boundary')) {
-                    map.removeSource('korea-boundary');
-                }
-            }
-        });
-        
-        function addKoreaBoundary() {
-            if (!map.getSource('korea-boundary')) {
-                map.addSource('korea-boundary', {
-                    'type': 'vector',
-                    'url': 'mapbox://mapbox.country-boundaries-v1'
-                });
-            }
-            
-            if (!map.getLayer('korea-boundary-layer')) {
-                map.addLayer({
-                    'id': 'korea-boundary-layer',
-                    'type': 'line',
-                    'source': 'korea-boundary',
-                    'source-layer': 'country_boundaries',
-                    'filter': ['==', 'iso_3166_1', 'KR'],
-                    'paint': {
-                        'line-color': '#000000',
-                        'line-width': 2,
-                        'line-opacity': 0.8
-                    }
-                });
-            }
-        }
-        
-        function addDistrictSources() {
-            if (!map.getSource('sigungu-source')) {
-                map.addSource('sigungu-source', {
-                    'type': 'vector',
-                    'url': 'mapbox://mmjjpp.b4x5ixng'
-                });
-            }
-            
-            if (!map.getSource('dong-source')) {
-                map.addSource('dong-source', {
-                    'type': 'vector',
-                    'url': 'mapbox://mmjjpp.53755csu'
-                });
-            }
-        }
-        
-        function loadDistrictNames() {
-            // This would typically be loaded from the tileset data
-            // For now, we'll populate with some example names
-            // In a real implementation, you'd query the tileset features
-            
-            // Example data - replace with actual data loading
-            const sigunguExamples = [
-                '서울특별시 강남구', '서울특별시 강동구', '서울특별시 강북구', '서울특별시 강서구',
-                '부산광역시 해운대구', '부산광역시 부산진구', '부산광역시 동래구',
-                '인천광역시 연수구', '인천광역시 남동구', '대구광역시 중구'
-            ];
-            
-            const dongExamples = [
-                '역삼동', '삼성동', '논현동', '압구정동', '청담동',
-                '해운대동', '우동', '중동', '좌동', '송정동'
-            ];
-            
-            populateDatalist('sigungu-list', sigunguExamples);
-            populateDatalist('dong-list', dongExamples);
-        }
-        
-        function populateDatalist(listId, items) {
-            const datalist = document.getElementById(listId);
-            datalist.innerHTML = '';
-            items.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item;
-                datalist.appendChild(option);
             });
         }
         
-        function addDistrict(type) {
-            const inputId = type === 'sigungu' ? 'sigungu-search' : 'dong-search';
-            const input = document.getElementById(inputId);
-            const districtName = input.value.trim();
-            const color = document.getElementById('district-color').value;
+        // Add label layers
+        function addLabelLayers() {
+            map.addLayer({
+                'id': 'sido-labels',
+                'type': 'symbol',
+                'source': 'sido-source',
+                'layout': {
+                    'text-field': ['get', 'SIDO_NM'],
+                    'text-font': ['Open Sans Regular'],
+                    'text-size': 14,
+                    'text-anchor': 'center'
+                },
+                'paint': {
+                    'text-color': '#000000',
+                    'text-halo-color': '#ffffff',
+                    'text-halo-width': 1
+                }
+            });
             
-            if (!districtName) {
-                alert('구역 이름을 입력해주세요.');
+            map.addLayer({
+                'id': 'sigungu-labels',
+                'type': 'symbol',
+                'source': 'sigungu-source',
+                'layout': {
+                    'text-field': ['get', 'SIGUNGU_NM'],
+                    'text-font': ['Open Sans Regular'],
+                    'text-size': 12,
+                    'text-anchor': 'center'
+                },
+                'paint': {
+                    'text-color': '#000000',
+                    'text-halo-color': '#ffffff',
+                    'text-halo-width': 1
+                },
+                'minzoom': 8
+            });
+            
+            map.addLayer({
+                'id': 'emd-labels',
+                'type': 'symbol',
+                'source': 'emd-source',
+                'layout': {
+                    'text-field': ['get', 'ADM_NM'],
+                    'text-font': ['Open Sans Regular'],
+                    'text-size': 10,
+                    'text-anchor': 'center'
+                },
+                'paint': {
+                    'text-color': '#000000',
+                    'text-halo-color': '#ffffff',
+                    'text-halo-width': 1
+                },
+                'minzoom': 11
+            });
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            // Style selector
+            document.getElementById('map-style').addEventListener('change', function(e) {
+                if (e.target.value === 'basic') {
+                    // Keep current custom style
+                    return;
+                }
+                map.setStyle(e.target.value);
+                map.once('styledata', function() {
+                    loadAdministrativeBoundaries();
+                });
+            });
+            
+            // Color controls
+            document.getElementById('water-color').addEventListener('input', function(e) {
+                if (map.getLayer('water')) {
+                    map.setPaintProperty('water', 'fill-color', e.target.value);
+                }
+                map.setPaintProperty('background', 'background-color', e.target.value);
+            });
+            
+            document.getElementById('land-color').addEventListener('input', function(e) {
+                if (map.getLayer('land')) {
+                    map.setPaintProperty('land', 'fill-color', e.target.value);
+                }
+            });
+            
+            document.getElementById('border-color').addEventListener('input', function(e) {
+                updateBorderColors(e.target.value);
+            });
+            
+            // Administrative division toggles
+            document.getElementById('show-sido').addEventListener('change', function(e) {
+                const visibility = e.target.checked ? 'visible' : 'none';
+                map.setLayoutProperty('sido-line', 'visibility', visibility);
+                map.setLayoutProperty('sido-fill', 'visibility', visibility);
+            });
+            
+            document.getElementById('show-sigungu').addEventListener('change', function(e) {
+                const visibility = e.target.checked ? 'visible' : 'none';
+                map.setLayoutProperty('sigungu-line', 'visibility', visibility);
+                map.setLayoutProperty('sigungu-fill', 'visibility', visibility);
+            });
+            
+            document.getElementById('show-emd').addEventListener('change', function(e) {
+                const visibility = e.target.checked ? 'visible' : 'none';
+                map.setLayoutProperty('emd-line', 'visibility', visibility);
+                map.setLayoutProperty('emd-fill', 'visibility', visibility);
+            });
+            
+            document.getElementById('show-labels').addEventListener('change', function(e) {
+                const visibility = e.target.checked ? 'visible' : 'none';
+                map.setLayoutProperty('sido-labels', 'visibility', visibility);
+                map.setLayoutProperty('sigungu-labels', 'visibility', visibility);
+                map.setLayoutProperty('emd-labels', 'visibility', visibility);
+            });
+            
+            // Border controls
+            setupBorderControls();
+        }
+        
+        // Setup border controls
+        function setupBorderControls() {
+            const countryWidthSlider = document.getElementById('country-border-width');
+            const countryWidthValue = document.getElementById('country-border-width-value');
+            const adminWidthSlider = document.getElementById('admin-border-width');
+            const adminWidthValue = document.getElementById('admin-border-width-value');
+            
+            countryWidthSlider.addEventListener('input', function(e) {
+                countryWidthValue.textContent = e.target.value;
+                map.setPaintProperty('country-boundary', 'line-width', parseInt(e.target.value));
+            });
+            
+            adminWidthSlider.addEventListener('input', function(e) {
+                adminWidthValue.textContent = e.target.value;
+                const width = parseFloat(e.target.value);
+                map.setPaintProperty('sido-line', 'line-width', width);
+                map.setPaintProperty('sigungu-line', 'line-width', width);
+                map.setPaintProperty('emd-line', 'line-width', width);
+            });
+            
+            document.getElementById('country-border-dashed').addEventListener('change', function(e) {
+                const dashArray = e.target.checked ? [5, 5] : [1, 0];
+                map.setPaintProperty('country-boundary', 'line-dasharray', dashArray);
+            });
+            
+            document.getElementById('admin-border-dashed').addEventListener('change', function(e) {
+                const dashArray = e.target.checked ? [3, 3] : [1, 0];
+                map.setPaintProperty('sido-line', 'line-dasharray', dashArray);
+                map.setPaintProperty('sigungu-line', 'line-dasharray', dashArray);
+                map.setPaintProperty('emd-line', 'line-dasharray', dashArray);
+            });
+        }
+        
+        // Update border colors
+        function updateBorderColors(color) {
+            map.setPaintProperty('sido-line', 'line-color', color);
+            map.setPaintProperty('sigungu-line', 'line-color', color);
+            map.setPaintProperty('emd-line', 'line-color', color);
+            map.setPaintProperty('sido-fill', 'fill-outline-color', color);
+            map.setPaintProperty('sigungu-fill', 'fill-outline-color', color);
+            map.setPaintProperty('emd-fill', 'fill-outline-color', color);
+        }
+        
+        // Add region to selection
+        function addRegion() {
+            const level = document.getElementById('region-level').value;
+            const searchText = document.getElementById('region-search').value.trim();
+            const color = document.getElementById('selection-color').value;
+            
+            if (!searchText) {
+                alert('행정구역 이름을 입력하세요.');
                 return;
             }
             
             // Check if already selected
-            if (selectedDistricts.some(d => d.name === districtName && d.type === type)) {
-                alert('이미 선택된 구역입니다.');
+            if (selectedRegions.some(r => r.name === searchText && r.level === level)) {
+                alert('이미 선택된 지역입니다.');
                 return;
             }
             
-            const district = {
-                name: districtName,
-                type: type,
-                color: color,
-                id: `${type}-${Date.now()}-${Math.random()}`
+            const region = {
+                id: `selected-${level}-${Date.now()}`,
+                name: searchText,
+                level: level,
+                color: color
             };
             
-            selectedDistricts.push(district);
-            addDistrictLayer(district);
-            updateSelectedDistrictsDisplay();
-            
-            // Clear input
-            input.value = '';
+            selectedRegions.push(region);
+            addRegionLayer(region);
+            updateSelectedRegionsDisplay();
+            document.getElementById('region-search').value = '';
         }
         
-        function addDistrictLayer(district) {
-            const sourceId = district.type === 'sigungu' ? 'sigungu-source' : 'dong-source';
-            const sourceLayer = district.type === 'sigungu' ? 'BND_SIGUNGU_PG-8djgqa' : 'BND_ADM_DONG_PG-3p138h';
-            const fieldName = district.type === 'sigungu' ? 'SIGUNGU_NM' : 'ADM_NM';
-            
-            const layerId = district.id;
+        // Add region layer to map
+        function addRegionLayer(region) {
+            const sourceId = `${region.level}-source`;
+            const fieldName = region.level === 'sido' ? 'SIDO_NM' : 
+                             region.level === 'sigungu' ? 'SIGUNGU_NM' : 'ADM_NM';
             
             map.addLayer({
-                'id': layerId,
+                'id': region.id,
                 'type': 'fill',
                 'source': sourceId,
-                'source-layer': sourceLayer,
-                'filter': ['==', fieldName, district.name],
+                'filter': ['==', fieldName, region.name],
                 'paint': {
-                    'fill-color': district.color,
-                    'fill-opacity': 0.6,
-                    'fill-outline-color': district.color
+                    'fill-color': region.color,
+                    'fill-opacity': 0.6
                 }
             });
         }
         
-        function removeDistrict(districtId) {
-            // Remove from array
-            selectedDistricts = selectedDistricts.filter(d => d.id !== districtId);
-            
-            // Remove layer from map
-            if (map.getLayer(districtId)) {
-                map.removeLayer(districtId);
+        // Remove region
+        function removeRegion(regionId) {
+            selectedRegions = selectedRegions.filter(r => r.id !== regionId);
+            if (map.getLayer(regionId)) {
+                map.removeLayer(regionId);
             }
-            
-            updateSelectedDistrictsDisplay();
+            updateSelectedRegionsDisplay();
         }
         
-        function clearAllDistricts() {
-            selectedDistricts.forEach(district => {
-                if (map.getLayer(district.id)) {
-                    map.removeLayer(district.id);
+        // Clear all regions
+        function clearAllRegions() {
+            selectedRegions.forEach(region => {
+                if (map.getLayer(region.id)) {
+                    map.removeLayer(region.id);
                 }
             });
-            
-            selectedDistricts = [];
-            updateSelectedDistrictsDisplay();
+            selectedRegions = [];
+            updateSelectedRegionsDisplay();
         }
         
-        function updateSelectedDistrictsDisplay() {
-            const container = document.getElementById('selected-districts');
+        // Update selected regions display
+        function updateSelectedRegionsDisplay() {
+            const container = document.getElementById('selected-regions');
             
-            if (selectedDistricts.length === 0) {
-                container.innerHTML = '선택된 구역이 없습니다.';
+            if (selectedRegions.length === 0) {
+                container.innerHTML = '선택된 지역이 없습니다.';
                 return;
             }
             
-            container.innerHTML = selectedDistricts.map(district => `
-                <div class="district-item">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <div class="district-color" style="background-color: ${district.color};"></div>
-                        <span>${district.name}</span>
+            container.innerHTML = selectedRegions.map(region => `
+                <div class="region-item">
+                    <div style="display: flex; align-items: center;">
+                        <div class="region-color" style="background-color: ${region.color};"></div>
+                        <span>${region.level}: ${region.name}</span>
                     </div>
-                    <button class="remove-btn" onclick="removeDistrict('${district.id}')">제거</button>
+                    <button onclick="removeRegion('${region.id}')" style="font-size: 10px; padding: 2px 6px;">✕</button>
                 </div>
             `).join('');
         }
         
-        function reapplySelectedDistricts() {
-            // Re-add district sources
-            addDistrictSources();
+        // Setup route drawing
+        function setupRouteDrawing() {
+            map.addSource('route', {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'properties': {},
+                    'geometry': {
+                        'type': 'LineString',
+                        'coordinates': []
+                    }
+                }
+            });
             
-            // Wait for sources to load, then re-add district layers
-            setTimeout(() => {
-                selectedDistricts.forEach(district => {
-                    addDistrictLayer(district);
-                });
-            }, 1000);
+            map.addLayer({
+                'id': routeLayerId,
+                'type': 'line',
+                'source': 'route',
+                'layout': {
+                    'line-join': 'round',
+                    'line-cap': 'round'
+                },
+                'paint': {
+                    'line-color': '#ff0000',
+                    'line-width': 4
+                }
+            });
+            
+            map.on('click', function(e) {
+                if (isDrawingRoute) {
+                    routePoints.push([e.lngLat.lng, e.lngLat.lat]);
+                    updateRouteLayer();
+                    updateRouteInfo();
+                }
+            });
         }
+        
+        // Start route drawing
+        function startRoute() {
+            isDrawingRoute = true;
+            routePoints = [];
+            document.getElementById('route-info').textContent = '경로 그리기 중... 지도를 클릭하세요';
+        }
+        
+        // End route drawing
+        function endRoute() {
+            isDrawingRoute = false;
+            document.getElementById('route-info').textContent = `경로 완료 (${routePoints.length}개 점)`;
+        }
+        
+        // Clear route
+        function clearRoute() {
+            isDrawingRoute = false;
+            routePoints = [];
+            updateRouteLayer();
+            document.getElementById('route-info').textContent = '지도를 클릭하여 경로를 그려보세요';
+        }
+        
+        // Update route layer
+        function updateRouteLayer() {
+            map.getSource('route').setData({
+                'type': 'Feature',
+                'properties': {},
+                'geometry': {
+                    'type': 'LineString',
+                    'coordinates': routePoints
+                }
+            });
+        }
+        
+        // Update route info
+        function updateRouteInfo() {
+            document.getElementById('route-info').textContent = 
+                `경로 그리기 중... (${routePoints.length}개 점)`;
+        }
+        
+        // Export map as PNG
+        function exportMapAsPNG() {
+            try {
+                const canvas = map.getCanvas();
+                const dataURL = canvas.toDataURL('image/png');
+                
+                const link = document.createElement('a');
+                link.download = `korean-map-${new Date().getTime()}.png`;
+                link.href = dataURL;
+                link.click();
+                
+                showStatus('지도가 PNG로 저장되었습니다.', 'success');
+            } catch (error) {
+                console.error('PNG export error:', error);
+                showStatus('PNG 저장 중 오류가 발생했습니다.', 'error');
+            }
+        }
+        
+        // Export route as SVG
+        function exportRouteAsSVG() {
+            if (routePoints.length < 2) {
+                alert('경로를 그려주세요.');
+                return;
+            }
+            
+            try {
+                const bounds = map.getBounds();
+                const canvas = map.getCanvas();
+                const width = canvas.width;
+                const height = canvas.height;
+                
+                // Convert route points to SVG coordinates
+                const svgPoints = routePoints.map(point => {
+                    const pixel = map.project(point);
+                    return `${pixel.x},${pixel.y}`;
+                }).join(' ');
+                
+                const svgContent = `
+                    <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+                        <polyline points="${svgPoints}" 
+                                  fill="none" 
+                                  stroke="#ff0000" 
+                                  stroke-width="4" 
+                                  stroke-linecap="round" 
+                                  stroke-linejoin="round"/>
+                    </svg>
+                `;
+                
+                const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+                const url = URL.createObjectURL(blob);
+                
+                const link = document.createElement('a');
+                link.download = `route-${new Date().getTime()}.svg`;
+                link.href = url;
+                link.click();
+                
+                URL.revokeObjectURL(url);
+                showStatus('경로가 SVG로 저장되었습니다.', 'success');
+            } catch (error) {
+                console.error('SVG export error:', error);
+                showStatus('SVG 저장 중 오류가 발생했습니다.', 'error');
+            }
+        }
+        
+        // Show status message
+        function showStatus(message, type = 'success') {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status-message ${type === 'error' ? 'error-message' : ''}`;
+            statusEl.style.display = 'block';
+            
+            setTimeout(() => {
+                statusEl.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Initialize the app
+        initMap();
     </script>
 </body>
 </html>
