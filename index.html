@@ -502,7 +502,7 @@
         });
 
         function addCustomLayers() {
-            // Add custom background and land layers for monochrome style
+            // Add custom background for water/ocean
             map.addLayer({
                 id: 'custom-background',
                 type: 'background',
@@ -514,24 +514,23 @@
                 }
             });
 
-            // Add Korea land layer using country_boundaries
+            // Add Korea land layer using country_boundaries - this creates the land vs water distinction
             map.addLayer({
                 id: 'custom-land',
                 type: 'fill',
                 source: 'country-boundaries-source',
                 'source-layer': 'country_boundaries',
-                filter: ['==', 'id', 13766778],
+                filter: ['==', 'id', 13766778], // Korea boundary filter
                 paint: {
                     'fill-color': '#f0f0f0',
                     'fill-opacity': 1
                 },
                 layout: {
                     'visibility': 'visible'
-                },
-                minzoom: 0,
-                maxzoom: 24
+                }
             });
 
+            // Add waterways layer
             map.addLayer({
                 id: 'custom-waterways',
                 type: 'line',
@@ -555,7 +554,7 @@
         }
 
         function addBoundaryLayers() {
-            // 시도 boundaries (always visible, all zoom levels)
+            // 시도 boundaries (visible at all zoom levels including 22)
             map.addLayer({
                 id: 'sido-boundaries',
                 type: 'line',
@@ -573,13 +572,14 @@
                         0, 0.5,
                         5, 1,
                         10, 2,
-                        15, 3
+                        15, 3,
+                        22, 4
                     ],
                     'line-dasharray': [1, 0]
                 }
             });
 
-            // 시군구 boundaries
+            // 시군구 boundaries (visible at all zoom levels including 22)
             map.addLayer({
                 id: 'sigungu-boundaries',
                 type: 'line',
@@ -597,13 +597,14 @@
                         0, 0.3,
                         5, 0.5,
                         10, 1,
-                        15, 2
+                        15, 2,
+                        22, 3
                     ],
                     'line-dasharray': [1, 0]
                 }
             });
 
-            // 읍면동 boundaries
+            // 읍면동 boundaries (visible at all zoom levels including 22)
             map.addLayer({
                 id: 'eubmyeondong-boundaries',
                 type: 'line',
@@ -621,7 +622,8 @@
                         0, 0.2,
                         5, 0.3,
                         10, 0.5,
-                        15, 1
+                        15, 1,
+                        22, 2
                     ],
                     'line-dasharray': [1, 0]
                 }
@@ -629,7 +631,7 @@
         }
 
         function addFillLayers() {
-            // 시도 fills (visible at all zoom levels with opacity scaling)
+            // 시도 fills (visible at all zoom levels including 22)
             map.addLayer({
                 id: 'sido-fill',
                 type: 'fill',
@@ -648,12 +650,13 @@
                         ['zoom'],
                         0, 0.6,
                         5, 0.7,
-                        15, 0.8
+                        15, 0.8,
+                        22, 0.9
                     ]
                 }
             }, 'sido-boundaries');
 
-            // 시군구 fills (visible at all zoom levels)
+            // 시군구 fills (visible at all zoom levels including 22)
             map.addLayer({
                 id: 'sigungu-fill',
                 type: 'fill',
@@ -672,12 +675,13 @@
                         ['zoom'],
                         0, 0.6,
                         5, 0.7,
-                        15, 0.8
+                        15, 0.8,
+                        22, 0.9
                     ]
                 }
             }, 'sigungu-boundaries');
 
-            // 읍면동 fills (visible at all zoom levels)
+            // 읍면동 fills (visible at all zoom levels including 22)
             map.addLayer({
                 id: 'eubmyeondong-fill',
                 type: 'fill',
@@ -696,7 +700,8 @@
                         ['zoom'],
                         0, 0.6,
                         5, 0.7,
-                        15, 0.8
+                        15, 0.8,
+                        22, 0.9
                     ]
                 }
             }, 'eubmyeondong-boundaries');
